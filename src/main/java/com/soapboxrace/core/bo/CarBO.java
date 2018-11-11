@@ -131,7 +131,7 @@ public class CarBO
         carBrandMap.put("R34GTR", "NISSAN");
         carBrandMap.put("R8", "AUDI");
         carBrandMap.put("REVENTON", "LAMBORGHINI");
-        carBrandMap.put("RHINO", "UNLOCALIZED_STRING");
+        carBrandMap.put("RHINO", "FORD");
         carBrandMap.put("ROADRUNNER", "PLYMOUTH");
         carBrandMap.put("RS4", "AUDI");
         carBrandMap.put("RTRX", "FORD");
@@ -165,6 +165,6 @@ public class CarBO
 
     public String getBrand(String carId)
     {
-        return carBrandMap.getOrDefault(carId, "UNLOCALIZED STRING");
+        return carBrandMap.getOrDefault(carId, "AI VEHICLES");
     }
 }
