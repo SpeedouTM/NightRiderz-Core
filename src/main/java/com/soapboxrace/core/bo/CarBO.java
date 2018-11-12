@@ -41,7 +41,7 @@ public class CarBO
         carBrandMap.put("CAPRI", "FORD");
         carBrandMap.put("CARRERA", "PORSCHE");
         carBrandMap.put("CATERHAM", "CATERHAM");
-        carBrandMap.put("CAYMAN", "PROSCHE");
+        carBrandMap.put("CAYMAN", "PORSCHE");
         carBrandMap.put("CCX", "KOENIGSEGG");
         carBrandMap.put("CCXR", "KOENIGSEGG");
         carBrandMap.put("CHALLENGER", "DODGE");
@@ -125,13 +125,13 @@ public class CarBO
         carBrandMap.put("MX5", "MAZDA");
         carBrandMap.put("PANAMERA", "PORSCHE");
         carBrandMap.put("PICKUP", "UNLOCALIZED_STRING");
-        carBrandMap.put("POLICEINTERCEPTOR", "UNLOCALIZED_STRING");
+        carBrandMap.put("POLICEINTERCEPTOR", "FORD");
         carBrandMap.put("QUATTRO20V", "AUDI");
-        carBrandMap.put("R32", "NISSAN");
+        carBrandMap.put("R32", "VOLKSWAGEN");
         carBrandMap.put("R34GTR", "NISSAN");
         carBrandMap.put("R8", "AUDI");
         carBrandMap.put("REVENTON", "LAMBORGHINI");
-        carBrandMap.put("RHINO", "FORD");
+        carBrandMap.put("RHINO", "JEEP");
         carBrandMap.put("ROADRUNNER", "PLYMOUTH");
         carBrandMap.put("RS4", "AUDI");
         carBrandMap.put("RTRX", "FORD");
@@ -165,6 +165,6 @@ public class CarBO
 
     public String getBrand(String carId)
     {
-        return carBrandMap.getOrDefault(carId, "AI VEHICLES");
+        return carBrandMap.getOrDefault(carId, "UNLOCALIZED_STRING");
     }
 }
