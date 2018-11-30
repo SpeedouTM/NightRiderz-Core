@@ -1,21 +1,15 @@
 package com.soapboxrace.core.api;
 
-import java.nio.ByteBuffer;
-import java.util.Base64;
-
-import javax.ejb.EJB;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.api.util.UUIDGen;
 import com.soapboxrace.core.bo.TokenSessionBO;
 import com.soapboxrace.jaxb.http.UdpRelayCryptoTicket;
 import com.soapboxrace.udp.UDPClient;
+
+import javax.ejb.EJB;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.util.Base64;
 
 @Path("/crypto")
 public class Crypto {
@@ -43,21 +37,17 @@ public class Crypto {
 	}
 
 	@GET
+	@Secured
 	@Path("/cryptoticket")
 	@Produces(MediaType.APPLICATION_XML)
-	public String cryptoticket() {
+	public String cryptoticket(@HeaderParam("securityToken") String securityToken) {
 		byte[] randomUUIDBytes = UUIDGen.getRandomUUIDBytes();
 		String ticketIV = Base64.getEncoder().encodeToString(randomUUIDBytes);
 		udpClient.sendFreeroamUdpKey(randomUUIDBytes);
-		byte[] helloPacket = { 10, 11, 12, 13 };
-		ByteBuffer byteBuffer = ByteBuffer.allocate(32);
-		byteBuffer.put(helloPacket);
-		byte[] cryptoTicketBytes = byteBuffer.array();
-		String cryptoTicketBase64 = Base64.getEncoder().encodeToString(cryptoTicketBytes);
 		StringBuilder stringBuilder = new StringBuilder();
 		stringBuilder.append("<ClientServerCryptoTicket>\n");
 		stringBuilder.append("<CryptoTicket>");
-		stringBuilder.append(cryptoTicketBase64);
+		stringBuilder.append(tokenBO.getCryptoTicket(securityToken));
 		stringBuilder.append("</CryptoTicket>\n");
 		stringBuilder.append("<SessionKey>AAAAAAAAAAAAAAAAAAAAAA==</SessionKey>\n");
 		stringBuilder.append("<TicketIv>");

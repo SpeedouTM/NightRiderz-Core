@@ -12,9 +12,24 @@ import com.soapboxrace.core.api.util.GeoIp2;
 import com.soapboxrace.core.api.util.UUIDGen;
 import com.soapboxrace.core.dao.TokenSessionDAO;
 import com.soapboxrace.core.dao.UserDAO;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.TokenSessionEntity;
 import com.soapboxrace.core.jpa.UserEntity;
+import com.soapboxrace.jaxb.*;
 import com.soapboxrace.jaxb.login.LoginStatusVO;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Date;
 
 @Stateless
 public class TokenSessionBO {
@@ -84,7 +99,13 @@ public class TokenSessionBO {
 	}
 
 	public void deleteByUserId(Long userId) {
-		tokenDAO.deleteByUserId(userId);
+		TokenSessionEntity token = tokenDAO.findByUserId(userId);
+		if (token != null) {
+			if (token.getCryptoTicket() != null) {
+				revokeCryptoTicket(token.getCryptoTicket());
+			}
+			tokenDAO.deleteByUserId(userId);
+		}
 	}
 
 	private Date getMinutes(int minutes) {
@@ -189,6 +210,44 @@ public class TokenSessionBO {
 		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
 		tokenSessionEntity.setActiveLobbyId(lobbyId);
 		tokenDAO.update(tokenSessionEntity);
+	}
+
+	public String getCryptoTicket(String securityToken) {
+		if (!parameterBO.getBoolParam("FREEROAM_TS_ENABLED")) {
+			ByteBuffer byteBuffer = ByteBuffer.allocate(32);
+			byteBuffer.put(new byte[] { 10, 11, 12, 13 });
+			byte[] cryptoTicketBytes = byteBuffer.array();
+			return Base64.getEncoder().encodeToString(cryptoTicketBytes);
+		}
+		TokenSessionEntity token = tokenDAO.findById(securityToken);
+		if (token.getCryptoTicket() != null) {
+			return token.getCryptoTicket();
+		}
+		UserEntity user = userDAO.findById(token.getUserId());
+		TSTicketRequest req = new TSTicketRequest();
+		for (PersonaEntity persona : user.getListOfProfile()) {
+			req.addPersona(persona.getPersonaId());
+		}
+		TSTicketResponse res = ClientBuilder.newClient()
+				.target(parameterBO.getStrParam("FREEROAM_TS_ENDPOINT"))
+				.path("/api/v1/tickets/request")
+				.request(MediaType.APPLICATION_JSON_TYPE)
+				.header("Authorization", "Bearer " + parameterBO.getStrParam("FREEROAM_TS_APIKEY"))
+				.post(Entity.json(req), TSTicketResponse.class);
+		token.setCryptoTicket(res.getTicket());
+		tokenDAO.update(token);
+		return res.getTicket();
+	}
+
+	public void revokeCryptoTicket(String ticket) {
+		if (!parameterBO.getBoolParam("FREEROAM_TS_ENABLED")) return;
+		TSRevokeRequest req = new TSRevokeRequest(ticket);
+		ClientBuilder.newClient()
+				.target(parameterBO.getStrParam("FREEROAM_TS_ENDPOINT"))
+				.path("/api/v1/tickets/revoke")
+				.request(MediaType.APPLICATION_JSON_TYPE)
+				.header("Authorization", "Bearer " + parameterBO.getStrParam("FREEROAM_TS_APIKEY"))
+				.post(Entity.json(req));
 	}
 
 	public boolean isPremium(String securityToken) {

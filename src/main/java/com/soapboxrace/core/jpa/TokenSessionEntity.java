@@ -1,13 +1,7 @@
 package com.soapboxrace.core.jpa;
 
+import javax.persistence.*;
 import java.util.Date;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
 
 @Entity
 @Table(name = "TOKEN_SESSION")
@@ -27,8 +21,10 @@ public class TokenSessionEntity {
 	@Column(name = "ID", nullable = false)
 	private String securityToken;
 
+	@Column(nullable = false)
 	private Long userId;
 
+	@Column(nullable = false)
 	private Date expirationDate;
 
 	private Long activePersonaId;
@@ -40,6 +36,8 @@ public class TokenSessionEntity {
 	private boolean premium = false;
 
 	private String clientHostIp;
+
+	private String cryptoTicket;
 
 	public String getSecurityToken() {
 		return securityToken;
@@ -105,4 +103,11 @@ public class TokenSessionEntity {
 		this.clientHostIp = clientHostIp;
 	}
 
+	public String getCryptoTicket() {
+		return cryptoTicket;
+	}
+
+	public void setCryptoTicket(String cryptoTicket) {
+		this.cryptoTicket = cryptoTicket;
+	}
 }

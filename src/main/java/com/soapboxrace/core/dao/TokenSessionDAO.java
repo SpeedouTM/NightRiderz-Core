@@ -1,13 +1,14 @@
 package com.soapboxrace.core.dao;
 
+import com.soapboxrace.core.dao.util.BaseDAO;
+import com.soapboxrace.core.jpa.TokenSessionEntity;
+
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.TypedQuery;
-
-import com.soapboxrace.core.dao.util.BaseDAO;
-import com.soapboxrace.core.jpa.TokenSessionEntity;
+import java.util.List;
 
 @Stateless
 public class TokenSessionDAO extends BaseDAO<TokenSessionEntity> {
@@ -24,7 +25,9 @@ public class TokenSessionDAO extends BaseDAO<TokenSessionEntity> {
 	public TokenSessionEntity findByUserId(Long userId) {
 		TypedQuery<TokenSessionEntity> query = entityManager.createNamedQuery("TokenSessionEntity.findByUserId", TokenSessionEntity.class);
 		query.setParameter("userId", userId);
-		return query.getSingleResult();
+
+		List<TokenSessionEntity> resultList = query.getResultList();
+		return !resultList.isEmpty() ? resultList.get(0) : null;
 	}
 
 	public void deleteByUserId(Long userId) {
