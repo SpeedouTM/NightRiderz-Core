@@ -31,6 +31,7 @@ public class ServerInfoEntity {
 	private String country;
 	private Integer timezone;
 	private String bannerUrl;
+	private String iconUrl;
 	private String adminList;
 	private String ownerList;
 	private Integer numberOfRegistered;
@@ -109,8 +110,16 @@ public class ServerInfoEntity {
 		return bannerUrl;
 	}
 
+	public String getIconUrl() {
+	return iconUrl;
+	}
+
 	public void setBannerUrl(String bannerUrl) {
 		this.bannerUrl = bannerUrl;
+	}
+
+	public void setIconUrl(String iconUrl) {
+	this.iconUrl = iconUrl;
 	}
 
 	public String getAdminList() {
