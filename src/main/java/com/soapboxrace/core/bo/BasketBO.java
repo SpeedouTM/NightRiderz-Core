@@ -1,16 +1,15 @@
 package com.soapboxrace.core.bo;
 
-import java.util.List;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.bo.util.OwnedCarConverter;
 import com.soapboxrace.core.dao.*;
 import com.soapboxrace.core.jpa.*;
 import com.soapboxrace.jaxb.http.CommerceResultStatus;
 import com.soapboxrace.jaxb.http.OwnedCarTrans;
 import com.soapboxrace.jaxb.util.UnmarshalXML;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import java.util.List;
 
 @Stateless
 public class BasketBO
@@ -206,6 +205,13 @@ public class BasketBO
         if (achievement != null)
         {
             achievementsBO.update(personaEntity, achievement, 1L);
+        }
+
+        AchievementDefinitionEntity achievement2 = achievementDAO.findByName("achievement_ACH_OWN_CAR");
+
+        if (achievement2 != null)
+        {
+            achievementsBO.update(personaEntity, achievement2, 1L);
         }
 
         return carSlotEntity;

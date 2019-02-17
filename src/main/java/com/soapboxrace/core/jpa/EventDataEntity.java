@@ -1,16 +1,7 @@
 package com.soapboxrace.core.jpa;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "EVENT_DATA")
@@ -30,6 +21,10 @@ public class EventDataEntity {
 	@ManyToOne
 	@JoinColumn(name = "EVENTID", referencedColumnName = "ID", foreignKey = @ForeignKey(name = "FK_EVENTDATA_EVENT"))
 	private EventEntity event;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(nullable = false)
+	private Date createdAt;
 
 	private Long personaId;
 	private int eventModeId;
@@ -69,6 +64,11 @@ public class EventDataEntity {
 	// TeamEscapeArbitrationPacket variables
 	protected int bustedCount;
 	protected float distanceToFinish;
+
+	@PrePersist
+	protected void onCreate() {
+		createdAt = new Date();
+	}
 
 	public Long getId() {
 		return id;

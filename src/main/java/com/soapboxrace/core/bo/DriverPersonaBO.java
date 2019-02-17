@@ -60,7 +60,7 @@ public class DriverPersonaBO {
 	public ProfileData createPersona(Long userId, PersonaEntity personaEntity) {
 		UserEntity userEntity = userDao.findById(userId);
 
-		if (userEntity.getListOfProfile().size() >= 3) {
+		if (userEntity.getListOfProfile().size() >= 5) {
 			return null;
 		}
 

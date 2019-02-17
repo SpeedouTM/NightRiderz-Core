@@ -1,17 +1,12 @@
 package com.soapboxrace.core.bo;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.NotAuthorizedException;
-
+import com.google.common.hash.Hashing;
 import com.soapboxrace.core.api.util.GeoIp2;
 import com.soapboxrace.core.api.util.UUIDGen;
+import com.soapboxrace.core.bo.util.PwnedPasswords;
 import com.soapboxrace.core.dao.TokenSessionDAO;
 import com.soapboxrace.core.dao.UserDAO;
+import com.soapboxrace.core.jpa.BanEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.TokenSessionEntity;
 import com.soapboxrace.core.jpa.UserEntity;
@@ -28,6 +23,9 @@ import javax.ws.rs.core.MediaType;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.Base64;
 import java.util.Date;
 
@@ -46,7 +44,10 @@ public class TokenSessionBO {
 	private GetServerInformationBO serverInfoBO;
 
 	@EJB
-	private OnlineUsersBO onlineUsersBO;
+	private AuthenticationBO authenticationBO;
+
+	@EJB
+	private Argon2BO argon2;
 
 	public boolean verifyToken(Long userId, String securityToken) {
 		TokenSessionEntity tokenSessionEntity = tokenDAO.findById(securityToken);
@@ -142,24 +143,16 @@ public class TokenSessionBO {
 		if (email != null && !email.isEmpty() && password != null && !password.isEmpty()) {
 			UserEntity userEntity = userDAO.findByEmail(email);
 			if (userEntity != null) {
-				int numberOfUsersOnlineNow = onlineUsersBO.getNumberOfUsersOnlineNow();
-				int maxOlinePayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
-				if (numberOfUsersOnlineNow >= maxOlinePayers && !userEntity.isPremium()) {
-					loginStatusVO.setDescription("SERVER FULL");
-					return loginStatusVO;
-				}
 				if (password.equals(userEntity.getPassword())) {
-					if (userEntity.getHwid() == null || userEntity.getHwid().trim().isEmpty()) {
-						userEntity.setHwid(httpRequest.getHeader("X-HWID"));
-					}
+					BanEntity banEntity = authenticationBO.checkUserBan(userEntity);
 
-					if (userEntity.getIpAddress() == null || userEntity.getIpAddress().trim().isEmpty()) {
-						String forwardedFor;
-						if ((forwardedFor = httpRequest.getHeader("X-Forwarded-For")) != null && parameterBO.getBoolParam("USE_FORWARDED_FOR")) {
-							userEntity.setIpAddress(parameterBO.getBoolParam("GOOGLE_LB_ENABLED") ? forwardedFor.split(",")[0] : forwardedFor);
-						} else {
-							userEntity.setIpAddress(httpRequest.getRemoteAddr());
-						}
+					if (banEntity != null) {
+						LoginStatusVO.Ban ban = new LoginStatusVO.Ban();
+						ban.setReason(banEntity.getReason());
+						if (banEntity.getEndsAt() != null)
+							ban.setExpires(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(ZoneId.systemDefault()).format(banEntity.getEndsAt()));
+						loginStatusVO.setBan(ban);
+						return loginStatusVO;
 					}
 
 					userEntity.setLastLogin(LocalDateTime.now());
@@ -170,12 +163,78 @@ public class TokenSessionBO {
 					loginStatusVO = new LoginStatusVO(userId, randomUUID, true);
 					loginStatusVO.setDescription("");
 
+					int breachCount = PwnedPasswords.checkHash(password);
+					if (breachCount > 0) {
+						loginStatusVO.setWarning("Your password has been breached " + breachCount + " times and should never be used.\nPlease choose new password using the password reset functionality.");
+					}
+
 					return loginStatusVO;
 				}
 			}
 		}
 		loginStatusVO.setDescription("LOGIN ERROR");
 		return loginStatusVO;
+	}
+
+	public ModernAuthResponse modernLogin(String email, String password, boolean upgrade) throws AuthException {
+		if (parameterBO.getBoolParam("MODERN_AUTH_DISABLE")) {
+			throw new AuthException("Modern Auth not enabled!");
+		}
+
+		UserEntity userEntity = userDAO.findByEmail(email);
+		if (userEntity == null) {
+			throw new AuthException("Invalid username or password");
+		}
+		if (userEntity.getPassword().length() == 40) {
+			@SuppressWarnings("deprecation")
+			String legacyHash = Hashing.sha1().hashString(password, StandardCharsets.UTF_8).toString();
+			if (!legacyHash.equals(userEntity.getPassword())) {
+				throw new AuthException("Invalid username or password");
+			}
+
+            if (upgrade) {
+                String hash = argon2.hash(password);
+                userEntity.setPassword(hash);
+            }
+		} else {
+			if (!argon2.verify(userEntity.getPassword(), password)) {
+				throw new AuthException("Invalid username or password");
+			}
+		}
+
+        BanEntity banEntity = authenticationBO.checkUserBan(userEntity);
+
+        if (banEntity != null) {
+            StringBuilder sb = new StringBuilder();
+            sb.append("Your account has been banned");
+            if (banEntity.getEndsAt() != null) {
+                sb.append(" until ");
+                sb.append(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.FULL).withZone(ZoneId.systemDefault()).format(banEntity.getEndsAt()));
+            }
+            if (banEntity.getReason() != null) {
+                sb.append('\n');
+                sb.append("Reason: ");
+                sb.append(banEntity.getReason());
+            }
+            throw new AuthException(sb.toString());
+        }
+
+		userEntity.setLastLogin(LocalDateTime.now());
+		userDAO.update(userEntity);
+
+		ModernAuthResponse response = new ModernAuthResponse();
+		Long userId = userEntity.getId();
+		deleteByUserId(userId);
+		String randomUUID = createToken(userId, null);
+		response.setUserId(userId);
+		response.setToken(randomUUID);
+
+		int breachCount = PwnedPasswords.checkPassword(password);
+		if (breachCount > 0) {
+			response.setWarning("Your password has been breached " + breachCount + " times and should never be used.\nPlease choose new password using the password reset functionality.");
+		}
+
+		return response;
 	}
 
 	public Long getActivePersonaId(String securityToken) {

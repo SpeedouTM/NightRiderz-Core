@@ -1,10 +1,10 @@
 package com.soapboxrace.core.bo;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.dao.ServerInfoDAO;
 import com.soapboxrace.core.jpa.ServerInfoEntity;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 
 @Stateless
 public class GetServerInformationBO {
@@ -25,12 +25,14 @@ public class GetServerInformationBO {
 		if (ticketToken != null && !ticketToken.equals("null")) {
 			serverInfoEntity.setRequireTicket(true);
 		}
-		serverInfoEntity.setServerVersion("0.1.0");
+		serverInfoEntity.setServerVersion("0.0.8");
 
 		int maxOnlinePlayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
 		if (maxOnlinePlayers != 0) {
 //			serverInfoEntity.setMaxUsersAllowed(maxOnlinePlayers);
 		}
+
+		serverInfoEntity.setModernAuthSupport(!parameterBO.getBoolParam("MODERN_AUTH_DISABLE"));
 
 		return serverInfoEntity;
 	}

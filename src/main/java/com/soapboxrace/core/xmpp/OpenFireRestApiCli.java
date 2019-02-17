@@ -1,7 +1,9 @@
 package com.soapboxrace.core.xmpp;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.soapboxrace.core.bo.ParameterBO;
+import org.igniterealtime.restclient.entity.MUCRoomEntities;
+import org.igniterealtime.restclient.entity.MUCRoomEntity;
+import org.igniterealtime.restclient.entity.UserEntity;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -14,12 +16,8 @@ import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-
-import org.igniterealtime.restclient.entity.MUCRoomEntities;
-import org.igniterealtime.restclient.entity.MUCRoomEntity;
-import org.igniterealtime.restclient.entity.UserEntity;
-
-import com.soapboxrace.core.bo.ParameterBO;
+import java.util.ArrayList;
+import java.util.List;
 
 @Startup
 @Singleton
@@ -114,10 +112,9 @@ public class OpenFireRestApiCli
 			String roomName = entity.getRoomName();
 			if (roomName.contains("group.channel."))
 			{
-				Long idOwner = Long.parseLong(roomName.substring(roomName.lastIndexOf('.') + 1));
-				if (idOwner.equals(personaId))
-				{
-					return getAllOccupantsInRoom(roomName);
+				List<Long> groupMembers = getAllOccupantsInRoom(roomName);
+				if (groupMembers.contains(personaId)) {
+					return groupMembers;
 				}
 			}
 		}
@@ -129,14 +126,15 @@ public class OpenFireRestApiCli
 		Builder builder = getBuilder("chatrooms/" + roomName + "/occupants");
 		OccupantEntities occupantEntities = builder.get(OccupantEntities.class);
 		List<Long> listOfPersona = new ArrayList<Long>();
-		for (OccupantEntity entity : occupantEntities.getOccupants())
-		{
-			String jid = entity.getJid();
-			try {
-				Long personaId = Long.parseLong(jid.substring(jid.lastIndexOf('.') + 1));
-				listOfPersona.add(personaId);
-			} catch (Exception e) {
-				//
+		if (occupantEntities.getOccupants() != null) {
+			for (OccupantEntity entity : occupantEntities.getOccupants()) {
+				String jid = entity.getJid();
+				try {
+					Long personaId = Long.parseLong(jid.substring(jid.lastIndexOf('.') + 1));
+					listOfPersona.add(personaId);
+				} catch (Exception e) {
+					//
+				}
 			}
 		}
 		return listOfPersona;

@@ -1,23 +1,8 @@
 package com.soapboxrace.core.api;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Objects;
-
-import javax.ejb.EJB;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import com.soapboxrace.core.api.util.*;
+import com.soapboxrace.core.api.util.ConcurrentUtil;
+import com.soapboxrace.core.api.util.LauncherChecks;
+import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.*;
 import com.soapboxrace.core.dao.FriendDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
@@ -26,11 +11,23 @@ import com.soapboxrace.core.jpa.FriendEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.UserEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
+import com.soapboxrace.jaxb.*;
 import com.soapboxrace.jaxb.http.ArrayOfBadgePacket;
 import com.soapboxrace.jaxb.http.PersonaBase;
 import com.soapboxrace.jaxb.http.UserInfo;
 import com.soapboxrace.jaxb.login.LoginStatusVO;
 import com.soapboxrace.jaxb.xmpp.XMPP_ResponseTypePersonaBase;
+
+import javax.ejb.EJB;
+import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.util.List;
+import java.util.Objects;
 
 @Path("User")
 public class User
@@ -50,6 +47,12 @@ public class User
 
 	@EJB
 	private TokenSessionBO tokenBO;
+
+	@EJB
+	private OnlineUsersBO onlineUsersBO;
+
+	@EJB
+	private ParameterBO parameterBO;
 
 	@EJB
 	private PresenceManager presenceManager;
@@ -72,9 +75,33 @@ public class User
 		UserEntity userEntity = tokenBO.getUser(securityToken);
 		BanEntity ban = authenticationBO.checkUserBan(userEntity);
 
-		if (ban != null && ban.stillApplies())
+		if (ban != null)
 		{
-			return Response.status(Response.Status.UNAUTHORIZED).entity(new BanUtil(ban).invoke()).build();
+			// Ideally this will never happen. Then again, plenty of weird stuff has happened.
+			tokenBO.deleteByUserId(userId);
+
+			return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(
+					"<EngineExceptionTrans xmlns=\"http://schemas.datacontract.org/2004/07/Victory.Service\">" +
+							"<ErrorCode>-1613</ErrorCode>" +
+							"<InnerException>" +
+							"<ErrorCode>-1613</ErrorCode>" +
+							"</InnerException>" +
+							"</EngineExceptionTrans>").build();
+		}
+
+		int numberOfUsersOnlineNow = onlineUsersBO.getNumberOfUsersOnlineNow();
+		int maxOnlinePlayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
+
+		if (maxOnlinePlayers != -1) {
+			if (numberOfUsersOnlineNow >= maxOnlinePlayers && !userEntity.isPremium()) {
+				return Response.status(Response.Status.SERVICE_UNAVAILABLE).entity(
+						"<EngineExceptionTrans xmlns=\"http://schemas.datacontract.org/2004/07/Victory.Service\">" +
+								"<ErrorCode>-521</ErrorCode>" +
+								"<InnerException>" +
+								"<ErrorCode>-521</ErrorCode>" +
+								"</InnerException>" +
+								"</EngineExceptionTrans>").build();
+			}
 		}
 
 		tokenBO.deleteByUserId(userId);
@@ -209,5 +236,35 @@ public class User
 			return Response.ok(loginStatusVO).build();
 		}
 		return Response.serverError().entity(loginStatusVO).build();
+	}
+
+	@POST
+	@Path("modernRegister")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@LauncherChecks
+	public Response modernRegister(ModernRegisterRequest req)
+	{
+		try {
+			userBO.createModernUser(req.getEmail(), req.getPassword(), req.getTicket());
+		} catch (AuthException e) {
+			return Response.status(Response.Status.BAD_REQUEST).entity(new JSONError(e.getMessage())).build();
+		}
+		return Response.ok(new ModernRegisterResponse("Account created!")).build();
+	}
+
+	@POST
+	@Path("modernAuth")
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@LauncherChecks
+	public Response modernAuth(ModernAuthRequest req)
+	{
+		try {
+			ModernAuthResponse resp = tokenBO.modernLogin(req.getEmail(), req.getPassword(), req.getUpgrade());
+			return Response.ok(resp).build();
+		} catch (AuthException e) {
+			return Response.status(Response.Status.BAD_REQUEST).entity(new JSONError(e.getMessage())).build();
+		}
 	}
 }

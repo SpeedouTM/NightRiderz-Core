@@ -6,5 +6,7 @@ package com.soapboxrace.core.xmpp;
  */
 public interface IHandshake
 {
+    void init();
+
     IOpenFireTalk getXmppTalk();
 }

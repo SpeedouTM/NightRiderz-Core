@@ -1,12 +1,12 @@
 package com.soapboxrace.core.xmpp;
 
+import com.soapboxrace.core.bo.ParameterBO;
+import com.soapboxrace.jaxb.util.MarshalXML;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Startup;
-
-import com.soapboxrace.core.bo.ParameterBO;
-import com.soapboxrace.jaxb.util.MarshalXML;
 
 @Startup
 @Singleton
@@ -25,11 +25,22 @@ public class OpenFireSoapBoxCli {
 		this.xmppTalk = handshake.getXmppTalk();
 	}
 
+	private void restart() {
+		handshake.init();
+		this.xmppTalk = handshake.getXmppTalk();
+	}
+
 	public void send(String msg, String to) {
+		if (xmppTalk.getSocket().isClosed()) {
+			restart();
+		}
 		xmppTalk.send(msg, to, parameterBO);
 	}
 
 	public void send(String msg, Long to) {
+		if (xmppTalk.getSocket().isClosed()) {
+			restart();
+		}
 		xmppTalk.send(msg, to, parameterBO);
 	}
 

@@ -1,11 +1,6 @@
 package com.soapboxrace.jaxb.login;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "LoginStatusVO")
@@ -19,6 +14,8 @@ public class LoginStatusVO {
 	private String description;
 	@XmlElement(name = "Ban")
 	private Ban ban;
+	@XmlElement(name = "Warning")
+	private String warning;
 
 	@XmlTransient
 	private boolean loginOk;
@@ -58,6 +55,14 @@ public class LoginStatusVO {
 
 	public boolean isLoginOk() {
 		return loginOk;
+	}
+
+	public String getWarning() {
+		return warning;
+	}
+
+	public void setWarning(String warning) {
+		this.warning = warning;
 	}
 
 	@XmlRootElement

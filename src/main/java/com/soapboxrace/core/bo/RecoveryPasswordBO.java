@@ -1,7 +1,11 @@
 package com.soapboxrace.core.bo;
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.io.BaseEncoding;
+import com.soapboxrace.core.dao.RecoveryPasswordDAO;
+import com.soapboxrace.core.dao.UserDAO;
+import com.soapboxrace.core.jpa.RecoveryPasswordEntity;
+import com.soapboxrace.core.jpa.UserEntity;
+import org.apache.commons.codec.digest.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.ejb.EJB;
@@ -12,13 +16,9 @@ import javax.mail.Session;
 import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
-
-import org.apache.commons.codec.digest.DigestUtils;
-
-import com.soapboxrace.core.dao.RecoveryPasswordDAO;
-import com.soapboxrace.core.dao.UserDAO;
-import com.soapboxrace.core.jpa.RecoveryPasswordEntity;
-import com.soapboxrace.core.jpa.UserEntity;
+import java.security.SecureRandom;
+import java.util.Date;
+import java.util.List;
 
 @Stateless
 public class RecoveryPasswordBO {
@@ -62,8 +62,8 @@ public class RecoveryPasswordBO {
 		if (!listRecoveryPasswordEntity.isEmpty()) {
 			return "ERROR: Recovery password link already sent, please check your spam mail box or try again in 1 hour.";
 		}
-
-		String randomKey = createSecretKey(userEntity.getId());
+		
+		String randomKey = createSecretKey();
 		if (!sendEmail(randomKey, userEntity)) {
 			return "ERROR: Can't send email!";
 		}
@@ -78,8 +78,10 @@ public class RecoveryPasswordBO {
 		return "Link to reset password sent to: [" + userEntity.getEmail() + "]";
 	}
 
-	private String createSecretKey(Long userId) {
-		return (Long.toHexString(Double.doubleToLongBits(Math.random())) + userId.toString());
+	private String createSecretKey() {
+		byte key[] = new byte[16];
+		new SecureRandom().nextBytes(key);
+		return BaseEncoding.base16().lowerCase().encode(key);
 	}
 
 	private Boolean sendEmail(String randomKey, UserEntity userEntity) {
