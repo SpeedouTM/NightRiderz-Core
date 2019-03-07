@@ -1,9 +1,7 @@
 package com.soapboxrace.core.xmpp;
 
 import com.soapboxrace.core.bo.ParameterBO;
-import org.igniterealtime.restclient.entity.MUCRoomEntities;
-import org.igniterealtime.restclient.entity.MUCRoomEntity;
-import org.igniterealtime.restclient.entity.UserEntity;
+import org.igniterealtime.restclient.entity.*;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.EJB;
@@ -145,5 +143,22 @@ public class OpenFireRestApiCli
 		MUCRoomEntities roomEntities = builder.get(MUCRoomEntities.class);
 
 		return roomEntities.getMucRooms();
+	}
+
+	public List<Long> getOnlinePersonas() {
+		Builder builder = getBuilder("sessions");
+		SessionEntities entities = builder.get(SessionEntities.class);
+		List<Long> personaList = new ArrayList<>();
+
+		for (SessionEntity entity : entities.getSessions()) {
+			String user = entity.getUsername();
+			try {
+				Long personaId = Long.parseLong(user.substring(user.lastIndexOf('.') + 1));
+				personaList.add(personaId);
+			} catch (Exception e) {
+				//
+			}
+		}
+		return personaList;
 	}
 }

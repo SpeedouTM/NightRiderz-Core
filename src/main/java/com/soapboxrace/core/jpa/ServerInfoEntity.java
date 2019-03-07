@@ -28,6 +28,7 @@ public class ServerInfoEntity {
 	private Integer numberOfRegistered;
 	private String allowedCountries;
 	private String iconUrl;
+	private String modsUrl;
 
 	@Convert(converter = SceneryGroupConverter.class)
 	private List<String> activatedHolidaySceneryGroups;
@@ -194,5 +195,13 @@ public class ServerInfoEntity {
 
 	public void setIconUrl(String iconUrl) {
 		this.iconUrl = iconUrl;
+	}
+
+	public String getModsUrl() {
+		return modsUrl;
+	}
+
+	public void setModsUrl(String modsUrl) {
+		this.modsUrl = modsUrl;
 	}
 }

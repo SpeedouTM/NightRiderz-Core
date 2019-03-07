@@ -18,4 +18,3 @@ sql-old/
 wildfly/
 /sql/mysql/full-script.sql
 /GeoLite2-Country.mmdb
-Add_support_for_Clerk.patch
