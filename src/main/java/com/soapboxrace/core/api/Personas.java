@@ -175,7 +175,7 @@ public class Personas {
 		ProductTrans productTrans = new ProductTrans();
 		productTrans.setBundleItems(new ArrayOfProductTrans());
 		productTrans.setCategoryId("");
-		productTrans.setCurrency("_NS");
+		productTrans.setCurrency("CASH");
 		productTrans.setDescription("New car slot !!");
 		productTrans.setDurationMinute(0);
 		productTrans.setHash(-1143680669);
