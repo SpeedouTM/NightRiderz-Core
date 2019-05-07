@@ -16,7 +16,7 @@ import com.soapboxrace.core.bo.HardwareInfoBO;
 import com.soapboxrace.core.bo.TokenSessionBO;
 import com.soapboxrace.core.jpa.UserEntity;
 
-@HwBan
+@Secured
 @Provider
 @Priority(Priorities.AUTHORIZATION)
 public class HwBanFilter implements ContainerRequestFilter {
