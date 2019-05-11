@@ -1,15 +1,16 @@
 package com.soapboxrace.core.bo;
 
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+
 import com.soapboxrace.core.bo.util.OwnedCarConverter;
 import com.soapboxrace.core.dao.*;
 import com.soapboxrace.core.jpa.*;
 import com.soapboxrace.jaxb.http.CommerceResultStatus;
 import com.soapboxrace.jaxb.http.OwnedCarTrans;
 import com.soapboxrace.jaxb.util.UnmarshalXML;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-import java.util.List;
 
 @Stateless
 public class BasketBO
@@ -44,6 +45,9 @@ public class BasketBO
 
     @EJB
     private TokenSessionBO tokenSessionBO;
+
+    @EJB
+    private TreasureHuntDAO treasureHuntDAO;
 
     @EJB
     private InventoryDAO inventoryDao;
@@ -91,6 +95,25 @@ public class BasketBO
         defaultCarEntity.getOwnedCar().setDurability(100);
 
         carSlotDAO.update(defaultCarEntity);
+        return CommerceResultStatus.SUCCESS;
+    }
+
+    public CommerceResultStatus restoreTreasureHunt(PersonaEntity personaEntity) {
+        int price = parameterBO.getIntParam("THREVIVE_PRICE", 250000);
+
+        if(personaEntity.getCash() < price) {
+            return CommerceResultStatus.FAIL_LOCKED_PRODUCT_NOT_ACCESSIBLE_TO_THIS_USER;
+        }
+
+        if (parameterBO.getBoolParam("ENABLE_ECONOMY")) {
+            personaEntity.setCash(personaEntity.getCash() - price);
+        }
+
+        Long personaId = personaEntity.getPersonaId();
+        TreasureHuntEntity treasureHuntEntity = treasureHuntDAO.findById(personaId);
+        treasureHuntEntity.setIsStreakBroken(false);
+        treasureHuntDAO.update(treasureHuntEntity);
+
         return CommerceResultStatus.SUCCESS;
     }
 
@@ -205,13 +228,6 @@ public class BasketBO
         if (achievement != null)
         {
             achievementsBO.update(personaEntity, achievement, 1L);
-        }
-
-        AchievementDefinitionEntity achievement2 = achievementDAO.findByName("achievement_ACH_OWN_CAR");
-
-        if (achievement2 != null)
-        {
-            achievementsBO.update(personaEntity, achievement2, 1L);
         }
 
         return carSlotEntity;

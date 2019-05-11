@@ -134,8 +134,10 @@ public class Personas {
 
 		BasketTrans basketTrans = UnmarshalXML.unMarshal(basketXml, BasketTrans.class);
 		String productId = basketTrans.getItems().getBasketItemTrans().get(0).getProductId();
-		if ("-1".equals(productId) || "SRV-GARAGESLOT".equals(productId) || "SRV-THREVIVE".equals(productId)) {
+		if ("-1".equals(productId) || "SRV-GARAGESLOT".equals(productId)) {
 			commerceResultTrans.setStatus(CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS);
+		} else if (productId.equals("SRV-THREVIVE")) {
+			commerceResultTrans.setStatus(basketBO.restoreTreasureHunt(personaEntity));
 		} else if (productId.contains("SRV-POWERUP")) {
 			commerceResultTrans.setStatus(basketBO.buyPowerups(productId, personaEntity));
 		} else if ("SRV-REPAIR".equals(productId)) {
