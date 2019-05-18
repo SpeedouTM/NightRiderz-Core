@@ -80,6 +80,7 @@ public class DriverPersonaBO {
 		ProfileData profileData = new ProfileData();
 		// switch to apache beanutils copy
 		profileData.setName(personaEntity.getName());
+		profileData.setBoost(personaEntity.getBoost());
 		profileData.setCash(personaEntity.getCash());
 		profileData.setIconIndex(personaEntity.getIconIndex());
 		profileData.setPersonaId(personaEntity.getPersonaId());

@@ -192,6 +192,7 @@ public class BasketBO
         if (parameterBO.getBoolParam("ENABLE_ECONOMY"))
         {
             personaEntity.setCash(personaEntity.getCash() - productEntity.getPrice());
+            personaEntity.setBoost(personaEntity.getBoost() - productEntity.getPrice());
         }
         personaDao.update(personaEntity);
 

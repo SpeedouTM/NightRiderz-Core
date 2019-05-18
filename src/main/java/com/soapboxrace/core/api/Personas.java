@@ -78,6 +78,8 @@ public class Personas {
 
 		CommerceSessionResultTrans commerceSessionResultTrans = new CommerceSessionResultTrans();
 
+		System.out.println(commerceXml.toString());
+
 		CommerceSessionTrans commerceSessionTrans = UnmarshalXML.unMarshal(commerceXml, CommerceSessionTrans.class);
 		List<BasketItemTrans> basketItemTrans = commerceSessionTrans.getBasket().getItems().getBasketItemTrans();
 		CarSlotEntity defaultCarEntity = personaBO.getDefaultCarEntity(personaId);
@@ -90,12 +92,17 @@ public class Personas {
 		ArrayOfInventoryItemTrans arrayOfInventoryItemTrans = new ArrayOfInventoryItemTrans();
 		arrayOfInventoryItemTrans.getInventoryItemTrans().add(new InventoryItemTrans());
 
-		WalletTrans walletTrans = new WalletTrans();
-		walletTrans.setBalance(defaultCarEntity.getPersona().getCash());
-		walletTrans.setCurrency("CASH");
+		WalletTrans walletTransCash = new WalletTrans();
+		walletTransCash.setBalance(defaultCarEntity.getPersona().getCash());
+		walletTransCash.setCurrency("CASH");
+		
+		WalletTrans walletTransBoost = new WalletTrans();
+		walletTransBoost.setBalance(defaultCarEntity.getPersona().getBoost());
+		walletTransBoost.setCurrency("BOOST");
 
 		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
-		arrayOfWalletTrans.getWalletTrans().add(walletTrans);
+		arrayOfWalletTrans.getWalletTrans().add(walletTransCash);
+		arrayOfWalletTrans.getWalletTrans().add(walletTransBoost);
 		commerceSessionResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
 		commerceSessionResultTrans.setStatus(CommerceResultStatus.SUCCESS);
 		commerceSessionResultTrans.setUpdatedCar(OwnedCarConverter.entity2Trans(defaultCarEntity.getOwnedCar()));
@@ -122,8 +129,14 @@ public class Personas {
 		walletTrans.setBalance(personaEntity.getCash());
 		walletTrans.setCurrency("CASH");
 
+		WalletTrans walletTrans2 = new WalletTrans();
+		walletTrans2.setBalance(personaEntity.getBoost());
+		walletTrans2.setCurrency("BOOST");
+
+
 		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
 		arrayOfWalletTrans.getWalletTrans().add(walletTrans);
+		arrayOfWalletTrans.getWalletTrans().add(walletTrans2);
 
 		commerceResultTrans.setWallets(arrayOfWalletTrans);
 		commerceResultTrans.setCommerceItems(new ArrayOfCommerceItemTrans());
