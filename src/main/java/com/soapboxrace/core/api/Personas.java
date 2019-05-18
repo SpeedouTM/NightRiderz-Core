@@ -92,17 +92,19 @@ public class Personas {
 		ArrayOfInventoryItemTrans arrayOfInventoryItemTrans = new ArrayOfInventoryItemTrans();
 		arrayOfInventoryItemTrans.getInventoryItemTrans().add(new InventoryItemTrans());
 
-		WalletTrans walletTransCash = new WalletTrans();
-		walletTransCash.setBalance(defaultCarEntity.getPersona().getCash());
-		walletTransCash.setCurrency("CASH");
-		
-		WalletTrans walletTransBoost = new WalletTrans();
-		walletTransBoost.setBalance(defaultCarEntity.getPersona().getBoost());
-		walletTransBoost.setCurrency("BOOST");
+		WalletTrans cashWallet = new WalletTrans();
+		cashWallet.setBalance(personaEntity.getCash());
+		cashWallet.setCurrency("CASH");
+
+		WalletTrans boostWallet = new WalletTrans();
+		boostWallet.setBalance(personaEntity.getBoost());
+		boostWallet.setCurrency("BOOST"); // 12/30/18: why doesn't _NS work? Truly a mystery...
 
 		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
-		arrayOfWalletTrans.getWalletTrans().add(walletTransCash);
-		arrayOfWalletTrans.getWalletTrans().add(walletTransBoost);
+		arrayOfWalletTrans.getWalletTrans().add(cashWallet);
+		arrayOfWalletTrans.getWalletTrans().add(boostWallet);
+
+		commerceResultTrans.setWallets(arrayOfWalletTrans);
 		commerceSessionResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
 		commerceSessionResultTrans.setStatus(CommerceResultStatus.SUCCESS);
 		commerceSessionResultTrans.setUpdatedCar(OwnedCarConverter.entity2Trans(defaultCarEntity.getOwnedCar()));
@@ -125,6 +127,26 @@ public class Personas {
 		ArrayOfInventoryItemTrans arrayOfInventoryItemTrans = new ArrayOfInventoryItemTrans();
 		arrayOfInventoryItemTrans.getInventoryItemTrans().add(new InventoryItemTrans());
 
+		
+		ArrayOfOwnedCarTrans arrayOfOwnedCarTrans = new ArrayOfOwnedCarTrans();
+		
+		BasketTrans basketTrans = UnmarshalXML.unMarshal(basketXml, BasketTrans.class);
+		String productId = basketTrans.getItems().getBasketItemTrans().get(0).getProductId();
+		if ("-1".equals(productId) || "SRV-GARAGESLOT".equals(productId)) {
+			commerceResultTrans.setStatus(CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS);
+		} else if (productId.equals("SRV-THREVIVE")) {
+			commerceResultTrans.setStatus(basketBO.restoreTreasureHunt(personaEntity));
+		} else if (productId.contains("SRV-POWERUP")) {
+			commerceResultTrans.setStatus(basketBO.buyPowerups(productId, personaEntity));
+		} else if ("SRV-REPAIR".equals(productId)) {
+			commerceResultTrans.setStatus(basketBO.repairCar(productId, personaEntity));
+		} else { // Car
+			OwnedCarTrans ownedCarTrans = new OwnedCarTrans();
+			commerceResultTrans.setPurchasedCars(arrayOfOwnedCarTrans);
+			arrayOfOwnedCarTrans.getOwnedCarTrans().add(ownedCarTrans);
+			
+			commerceResultTrans.setStatus(basketBO.buyCar(productId, personaEntity, securityToken));
+		}
 		WalletTrans walletTrans = new WalletTrans();
 		walletTrans.setBalance(personaEntity.getCash());
 		walletTrans.setCurrency("CASH");
@@ -142,26 +164,6 @@ public class Personas {
 		commerceResultTrans.setCommerceItems(new ArrayOfCommerceItemTrans());
 		commerceResultTrans.setInvalidBasket(new InvalidBasketTrans());
 		commerceResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
-
-		ArrayOfOwnedCarTrans arrayOfOwnedCarTrans = new ArrayOfOwnedCarTrans();
-
-		BasketTrans basketTrans = UnmarshalXML.unMarshal(basketXml, BasketTrans.class);
-		String productId = basketTrans.getItems().getBasketItemTrans().get(0).getProductId();
-		if ("-1".equals(productId) || "SRV-GARAGESLOT".equals(productId)) {
-			commerceResultTrans.setStatus(CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS);
-		} else if (productId.equals("SRV-THREVIVE")) {
-			commerceResultTrans.setStatus(basketBO.restoreTreasureHunt(personaEntity));
-		} else if (productId.contains("SRV-POWERUP")) {
-			commerceResultTrans.setStatus(basketBO.buyPowerups(productId, personaEntity));
-		} else if ("SRV-REPAIR".equals(productId)) {
-			commerceResultTrans.setStatus(basketBO.repairCar(productId, personaEntity));
-		} else { // Car
-			OwnedCarTrans ownedCarTrans = new OwnedCarTrans();
-			commerceResultTrans.setPurchasedCars(arrayOfOwnedCarTrans);
-			arrayOfOwnedCarTrans.getOwnedCarTrans().add(ownedCarTrans);
-
-			commerceResultTrans.setStatus(basketBO.buyCar(productId, personaEntity, securityToken));
-		}
 		return commerceResultTrans;
 	}
 
