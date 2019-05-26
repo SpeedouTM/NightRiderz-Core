@@ -90,12 +90,16 @@ public class EventsBO {
 
 	public String accolades(Long activePersonaId, Boolean isBroken) {
 		TreasureHuntEntity treasureHuntEntity = treasureHuntDao.findById(activePersonaId);
+	if (isBroken && !treasureHuntEntity.getIsStreakBroken()) {
+		return MarshalXML.marshal(getTreasureHuntAccolades(activePersonaId, treasureHuntEntity));
+	}
 
 		if (isBroken) {
 			treasureHuntEntity.setStreak(1);
 			treasureHuntEntity.setIsStreakBroken(false);
 		} else {
 			treasureHuntEntity.setStreak(treasureHuntEntity.getStreak() + 1);
+			treasureHuntEntity.setSeed(new Random().nextInt());
 		}
 
 		treasureHuntEntity.setThDate(LocalDate.now());
