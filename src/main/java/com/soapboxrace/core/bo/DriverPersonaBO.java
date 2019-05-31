@@ -117,6 +117,7 @@ public class DriverPersonaBO {
 		profileData.setRep(personaEntity.getRep());
 		profileData.setRepAtCurrentLevel(personaEntity.getRepAtCurrentLevel());
 		profileData.setScore(personaEntity.getScore());
+		profileData.setBoost(personaEntity.getBoost());
 		return profileData;
 	}
 

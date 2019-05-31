@@ -17,6 +17,7 @@ public class RewardVO implements Serializable {
 	int baseCash = 0;
 	int rep = 0;
 	int cash = 0;
+	int boost = 0;
 	ArrayOfRewardPart arrayOfRewardPart = new ArrayOfRewardPart();
 	private boolean enableEconomy;
 	private boolean enableReputation;
@@ -65,6 +66,10 @@ public class RewardVO implements Serializable {
 
 	public int getCash() {
 		return cash;
+	}
+
+	public int getBoost() {
+		return boost;
 	}
 
 	public ArrayOfRewardPart getArrayOfRewardPart() {

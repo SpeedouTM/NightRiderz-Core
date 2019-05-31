@@ -292,7 +292,7 @@ public class RewardBO {
 	public RewardVO getRewardVO(PersonaEntity personaEntity) {
 		Boolean enableEconomy = parameterBO.getBoolParam("ENABLE_ECONOMY");
 		Boolean enableReputation = parameterBO.getBoolParam("ENABLE_REPUTATION");
-		if (personaEntity.getLevel() >= 200) {
+		if (personaEntity.getLevel() >= 100) {
 			enableReputation = false;
 		}
 		if (personaEntity.getBoost() > 999999999) {

@@ -92,21 +92,18 @@ public class Personas {
 		ArrayOfInventoryItemTrans arrayOfInventoryItemTrans = new ArrayOfInventoryItemTrans();
 		arrayOfInventoryItemTrans.getInventoryItemTrans().add(new InventoryItemTrans());
 
-		WalletTrans cashWallet = new WalletTrans();
-		cashWallet.setBalance(personaEntity.getCash());
-		cashWallet.setCurrency("CASH");
-
-		WalletTrans boostWallet = new WalletTrans();
-		boostWallet.setBalance(personaEntity.getBoost());
-		boostWallet.setCurrency("BOOST"); // 12/30/18: why doesn't _NS work? Truly a mystery...
+		WalletTrans walletTransCash = new WalletTrans();
+		walletTransCash.setBalance(defaultCarEntity.getPersona().getCash());
+		walletTransCash.setCurrency("CASH");
+		
+		WalletTrans walletTransBoost = new WalletTrans();
+		walletTransBoost.setBalance(defaultCarEntity.getPersona().getBoost());
+		walletTransBoost.setCurrency("BOOST");
 
 		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
-		arrayOfWalletTrans.getWalletTrans().add(cashWallet);
-		arrayOfWalletTrans.getWalletTrans().add(boostWallet);
-
-		commerceResultTrans.setWallets(arrayOfWalletTrans);
+		arrayOfWalletTrans.getWalletTrans().add(walletTransCash);
+		arrayOfWalletTrans.getWalletTrans().add(walletTransBoost);
 		commerceSessionResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
-		commerceSessionResultTrans.setStatus(CommerceResultStatus.SUCCESS);
 		commerceSessionResultTrans.setUpdatedCar(OwnedCarConverter.entity2Trans(defaultCarEntity.getOwnedCar()));
 		commerceSessionResultTrans.setWallets(arrayOfWalletTrans);
 		return commerceSessionResultTrans;

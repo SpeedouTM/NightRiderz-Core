@@ -21,6 +21,9 @@ public class DropBO {
 	private PersonaDAO personaDao;
 
 	@EJB
+	private ParameterBO parameterBO;
+
+	@EJB
 	private InventoryDAO inventoryDao;
 
 	@EJB
@@ -34,6 +37,7 @@ public class DropBO {
 
 	public ProductEntity getRandomProductItem() {
 		String[] productTypeArr = { "PERFORMANCEPART", "POWERUP", "SKILLMODPART", "VISUALPART" };
+
 		Random random = new Random();
 		int number = random.nextInt(productTypeArr.length);
 		return productDao.getRandomDrop(productTypeArr[number]);
