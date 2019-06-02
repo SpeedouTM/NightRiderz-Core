@@ -1,8 +1,7 @@
-# soapbox-race-core
+# NightRiderz-Core
+This version is a fork of soapbox-race-core with our modifications.
 
-standalone.xml need to have gzip, here an example
-
-
+Wildfly needs to have Gzip enabled, here an exemple :
     <subsystem xmlns="urn:jboss:domain:undertow:3.1">
       <buffer-cache name="default" />
       <server name="default-server">
@@ -33,7 +32,7 @@ standalone.xml need to have gzip, here an example
     </subsystem>
     
     
-system property example:
+Wildfly system property example:
 
 	 <system-properties>
 	    <property name="openFireToken" value="xzxzx99df4d51z2d" />
@@ -51,7 +50,7 @@ system property example:
 	  </system-properties>
 	  
 	  
-datasource example:
+Wildfly datasource example:
 
 	<datasource jndi-name="java:jboss/datasources/SoapBoxDS" pool-name="SoapBoxDS" enabled="true" use-java-context="true">
 	  <connection-url>jdbc:h2:tcp://localhost/~/git/soapbox-race-core/db/soapbox</connection-url>
@@ -61,25 +60,3 @@ datasource example:
 	    <password>sa</password>
 	  </security>
 	</datasource>
-
-
-email config example:
-
-
-    <subsystem xmlns="urn:jboss:domain:mail:2.0">
-      <mail-session name="default" jndi-name="java:jboss/mail/Default">
-        <smtp-server outbound-socket-binding-ref="mail-smtp" />
-      </mail-session>
-      <mail-session name="Gmail" from="oncabroadcast@gmail.com" jndi-name="java:jboss/mail/Gmail">
-        <smtp-server password="secretPassword" username="myemail@gmail.com" ssl="true" outbound-socket-binding-ref="mail-smtp-gmail" />
-      </mail-session>
-    </subsystem>
-    ......
-    <outbound-socket-binding name="mail-smtp">
-      <remote-destination host="localhost" port="25" />
-    </outbound-socket-binding>
-    <outbound-socket-binding name="mail-smtp-gmail" source-port="0" fixed-source-port="false">
-      <remote-destination host="smtp.gmail.com" port="465" />
-    </outbound-socket-binding>
-
-donations: https://www.patreon.com/nilzao
