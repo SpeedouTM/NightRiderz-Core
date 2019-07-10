@@ -131,7 +131,7 @@ public class CarBO
         carBrandMap.put("R34GTR", "NISSAN");
         carBrandMap.put("R8", "AUDI");
         carBrandMap.put("REVENTON", "LAMBORGHINI");
-        carBrandMap.put("RHINO", "UNLOCALIZED_STRING");
+        carBrandMap.put("RHINO", "JEEP");
         carBrandMap.put("ROADRUNNER", "PLYMOUTH");
         carBrandMap.put("RS4", "AUDI");
         carBrandMap.put("RTRX", "FORD");
