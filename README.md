@@ -35,10 +35,10 @@ Wildfly needs to have Gzip enabled, here an exemple :
 Wildfly system property example:
 
 	 <system-properties>
-	    <property name="openFireToken" value="xzxzx99df4d51z2d" />
+	    <property name="openFireToken" value="restapikey" />
 	    <property name="openFireAddress" value="http://localhost:9090/plugins/restapi/v1" />
 	    <property name="xmppIp" value="127.0.0.1" />
-	    <property name="xmppPort" value="5222" />
+	    <property name="xmppPort" value="5333" />
 	    <property name="udpRaceIp" value="127.0.0.1"/>
         <property name="udpRacePort" value="9998"/>
         <property name="udpFreeroamIp" value="127.0.0.1"/>
@@ -46,7 +46,7 @@ Wildfly system property example:
         <property name="ticketToken" value="123456789"/>
         <property name="emailFrom" value="myemail@gmail.com" />
         <property name="serverAddress" value="http://127.0.0.1:8680" />
-        <property name="promoCodeToken" value="987654321" />
+        <property name="promoCodeToken" value="yourtoken" />
 	  </system-properties>
 	  
 	  
