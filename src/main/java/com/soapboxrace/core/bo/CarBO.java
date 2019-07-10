@@ -165,6 +165,6 @@ public class CarBO
 
     public String getBrand(String carId)
     {
-        return carBrandMap.getOrDefault(carId, "UNLOCALIZED STRING");
+        return carBrandMap.getOrDefault(carId, "UNLOCALIZED_STRING");
     }
 }
