@@ -155,8 +155,10 @@ public class CarBO
         carBrandMap.put("TAXI", "UNLOCALIZED_STRING");
         carBrandMap.put("TTRS", "AUDI");
         carBrandMap.put("UCMUS", "UNLOCALIZED_STRING");
+        carBrandMap.put("COPSPORTGHOST", "LAMBORGHINI");
         carBrandMap.put("V12", "ASTONMARTIN");
         carBrandMap.put("VEYRON", "BUGATTI");
+        carBrandMap.put("COPHELI", "BUGATTI");
         carBrandMap.put("VIPER", "DODGE");
         carBrandMap.put("XKR", "JAGUAR");
         carBrandMap.put("Z4", "BMW");
