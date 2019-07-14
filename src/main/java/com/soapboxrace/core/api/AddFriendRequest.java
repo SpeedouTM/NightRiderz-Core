@@ -18,7 +18,6 @@ import com.soapboxrace.jaxb.http.FriendResult;
 import com.soapboxrace.jaxb.http.PersonaBase;
 import com.soapboxrace.jaxb.util.MarshalXML;
 import com.soapboxrace.jaxb.xmpp.XMPP_FriendPersonaType;
-import com.soapboxrace.jaxb.xmpp.XMPP_ResponseTypePersonaBase;
 
 import java.util.Objects;
 

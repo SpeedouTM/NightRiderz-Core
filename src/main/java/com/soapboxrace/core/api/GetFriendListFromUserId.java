@@ -11,7 +11,6 @@ import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.FriendEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireRestApiCli;
-import com.soapboxrace.jaxb.annotation.XsiSchemaLocation;
 import com.soapboxrace.jaxb.http.ArrayOfFriendPersona;
 import com.soapboxrace.jaxb.http.FriendPersona;
 import com.soapboxrace.jaxb.http.PersonaFriendsList;

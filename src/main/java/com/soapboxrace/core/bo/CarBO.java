@@ -163,6 +163,7 @@ public class CarBO
         carBrandMap.put("XKR", "JAGUAR");
         carBrandMap.put("Z4", "BMW");
         carBrandMap.put("ZONDA", "PAGANI");
+        carBrandMap.put("COPSPORT", "LAMBORGHINI");
     }
 
     public String getBrand(String carId)
