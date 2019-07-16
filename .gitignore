@@ -18,3 +18,4 @@ sql-old/
 wildfly/
 /sql/mysql/full-script.sql
 /GeoLite2-Country.mmdb
+nr-core.code-workspace

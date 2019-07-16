@@ -2,7 +2,6 @@ package com.soapboxrace.core.bo;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.soapboxrace.core.bo.util.TimeConverter;
