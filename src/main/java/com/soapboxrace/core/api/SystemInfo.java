@@ -30,7 +30,7 @@ public class SystemInfo {
 		systemInfo.setLauncherServiceUrl("http://127.0.0.1");
 		systemInfo.setNucleusNamespace("sbrw-live");
 		systemInfo.setNucleusNamespaceWeb("sbr_web");
-		systemInfo.setPersonaCacheTimeout(900);
+		systemInfo.setPersonaCacheTimeout(2000);
 		systemInfo.setPortalDomain("nightriderz.world");
 		systemInfo.setPortalStoreFailurePage("nightriderz.world/fail");
 		systemInfo.setPortalTimeOut("6000");
