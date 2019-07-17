@@ -94,14 +94,14 @@ public class BasketBO {
     }
 
     public CommerceResultStatus restoreTreasureHunt(PersonaEntity personaEntity) {
-        int price = parameterBO.getIntParam("THREVIVE_PRICE", 250000);
+        int price = parameterBO.getIntParam("THREVIVE_PRICE", 500);
 
-        if (personaEntity.getCash() < price) {
+        if (personaEntity.getBoost() < price) {
             return CommerceResultStatus.FAIL_LOCKED_PRODUCT_NOT_ACCESSIBLE_TO_THIS_USER;
         }
 
         if (parameterBO.getBoolParam("ENABLE_ECONOMY")) {
-            personaEntity.setCash(personaEntity.getCash() - price);
+            personaEntity.setBoost(personaEntity.getBoost() - price);
         }
 
         Long personaId = personaEntity.getPersonaId();
@@ -123,7 +123,7 @@ public class BasketBO {
             return CommerceResultStatus.FAIL_INVALID_BASKET;
         }
 
-        if (personaEntity.getCash() < powerupProduct.getPrice()) {
+        if (personaEntity.getBoost() < powerupProduct.getPrice()) {
             return CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS;
         }
 
@@ -154,7 +154,7 @@ public class BasketBO {
         inventoryItemDao.update(item);
 
         if (upgradedAmount) {
-            personaEntity.setCash(personaEntity.getCash() - powerupProduct.getPrice());
+            personaEntity.setBoost(personaEntity.getBoost() - powerupProduct.getPrice());
             personaDao.update(personaEntity);
         }
 
