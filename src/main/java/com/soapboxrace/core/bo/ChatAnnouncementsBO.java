@@ -27,14 +27,14 @@ public class ChatAnnouncementsBO
 
     private Long ticks = 0L;
 
-    @Schedule(minute = "*", hour = "*", second = "*/5", persistent = false)
+    @Schedule(minute = "*", hour = "*", second = "*/1", persistent = false)
     public void sendMessages()
     {
-        ticks += 5;
+        ticks += 1;
 
         for (ChatAnnouncementEntity announcementEntity : chatAnnouncementDAO.findAll())
         {
-            if (announcementEntity.getAnnouncementInterval() % 5 != 0) continue;
+            if (announcementEntity.getAnnouncementInterval() % 1 != 0) continue;
 
             List<MUCRoomEntity> channels = restApiCli.getAllRooms()
                     .stream()
