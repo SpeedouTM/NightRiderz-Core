@@ -1,16 +1,5 @@
 package com.soapboxrace.core.api;
 
-import java.io.InputStream;
-
-import javax.ejb.EJB;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
 import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.AchievementsBO;
 import com.soapboxrace.core.bo.EventBO;
@@ -21,12 +10,14 @@ import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.jpa.EventEntity;
 import com.soapboxrace.core.jpa.EventMode;
 import com.soapboxrace.core.jpa.EventSessionEntity;
-import com.soapboxrace.jaxb.http.DragArbitrationPacket;
-import com.soapboxrace.jaxb.http.PursuitArbitrationPacket;
-import com.soapboxrace.jaxb.http.PursuitEventResult;
-import com.soapboxrace.jaxb.http.RouteArbitrationPacket;
-import com.soapboxrace.jaxb.http.TeamEscapeArbitrationPacket;
+import com.soapboxrace.core.jpa.UserEntity;
+import com.soapboxrace.jaxb.http.*;
 import com.soapboxrace.jaxb.util.UnmarshalXML;
+
+import javax.ejb.EJB;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.InputStream;
 
 @Path("/event")
 public class Event {
@@ -63,7 +54,8 @@ public class Event {
 	@Produces(MediaType.APPLICATION_XML)
 	public String launched(@HeaderParam("securityToken") String securityToken, @QueryParam("eventSessionId") Long eventSessionId) {
 		Long activePersonaId = tokenBO.getActivePersonaId(securityToken);
-		eventBO.createEventDataSession(activePersonaId, eventSessionId);
+		UserEntity user = tokenBO.getUser(securityToken);
+		eventBO.createEventDataSession(activePersonaId, eventSessionId, user);
 		return "";
 	}
 

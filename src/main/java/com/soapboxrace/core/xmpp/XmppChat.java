@@ -1,9 +1,12 @@
 package com.soapboxrace.core.xmpp;
 
+import com.google.common.xml.XmlEscapers;
+
 public class XmppChat
 {
     public static String createSystemMessage(String message)
     {
+        String escapedMessage = XmlEscapers.xmlContentEscaper().escape(message);
         return String.format("<response status='1' ticket='0'>\n" +
                 "<ChatBroadcast>\n" +
                 "<ChatBlob>\n" +
@@ -15,6 +18,6 @@ public class XmppChat
                 "<Type>2</Type>\n" +
                 "</ChatBlob>\n" +
                 "</ChatBroadcast>\n" +
-                "</response>", message);
+                "</response>", escapedMessage);
     }
 }

@@ -1,13 +1,12 @@
 package com.soapboxrace.jaxb.util;
 
-import java.io.StringWriter;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+import java.io.StringWriter;
 
 public class MarshalXML {
 
@@ -15,12 +14,12 @@ public class MarshalXML {
 	public static String marshal(Object obj) {
 		StringWriter stringWriter = new StringWriter();
 		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(obj.getClass());
+			JAXBContext jaxbContext = JAXBContextCache.get(obj.getClass());
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, false);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);
 			XmlRootElement xmlRootAnnotation = obj.getClass().getAnnotation(XmlRootElement.class);
-			System.out.println(xmlRootAnnotation);
+			// System.out.println(xmlRootAnnotation);
 			if (xmlRootAnnotation == null) {
 				XmlType xmlTypeAnnotation = obj.getClass().getAnnotation(XmlType.class);
 				QName qname = new QName("", xmlTypeAnnotation.name());

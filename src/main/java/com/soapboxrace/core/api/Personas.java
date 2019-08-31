@@ -1,51 +1,21 @@
 package com.soapboxrace.core.api;
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.ejb.EJB;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-
 import com.soapboxrace.core.api.util.Secured;
-import com.soapboxrace.core.bo.BasketBO;
-import com.soapboxrace.core.bo.CommerceBO;
-import com.soapboxrace.core.bo.InventoryBO;
-import com.soapboxrace.core.bo.ParameterBO;
-import com.soapboxrace.core.bo.PersonaBO;
-import com.soapboxrace.core.bo.TokenSessionBO;
+import com.soapboxrace.core.bo.*;
 import com.soapboxrace.core.bo.util.CommerceOp;
 import com.soapboxrace.core.bo.util.OwnedCarConverter;
 import com.soapboxrace.core.jpa.CarSlotEntity;
 import com.soapboxrace.core.jpa.OwnedCarEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
-import com.soapboxrace.jaxb.http.ArrayOfCommerceItemTrans;
-import com.soapboxrace.jaxb.http.ArrayOfInventoryItemTrans;
-import com.soapboxrace.jaxb.http.ArrayOfOwnedCarTrans;
-import com.soapboxrace.jaxb.http.ArrayOfProductTrans;
-import com.soapboxrace.jaxb.http.ArrayOfWalletTrans;
-import com.soapboxrace.jaxb.http.BasketItemTrans;
-import com.soapboxrace.jaxb.http.BasketTrans;
-import com.soapboxrace.jaxb.http.CarSlotInfoTrans;
-import com.soapboxrace.jaxb.http.CommerceResultStatus;
-import com.soapboxrace.jaxb.http.CommerceResultTrans;
-import com.soapboxrace.jaxb.http.CommerceSessionResultTrans;
-import com.soapboxrace.jaxb.http.CommerceSessionTrans;
-import com.soapboxrace.jaxb.http.InvalidBasketTrans;
-import com.soapboxrace.jaxb.http.InventoryItemTrans;
-import com.soapboxrace.jaxb.http.InventoryTrans;
-import com.soapboxrace.jaxb.http.OwnedCarTrans;
-import com.soapboxrace.jaxb.http.ProductTrans;
-import com.soapboxrace.jaxb.http.WalletTrans;
+import com.soapboxrace.jaxb.http.*;
 import com.soapboxrace.jaxb.util.MarshalXML;
 import com.soapboxrace.jaxb.util.UnmarshalXML;
+
+import javax.ejb.EJB;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.InputStream;
+import java.util.List;
 
 @Path("/personas")
 public class Personas {
@@ -68,6 +38,9 @@ public class Personas {
 	@EJB
 	private InventoryBO inventoryBO;
 
+	@EJB
+	private AchievementsBO achievementsBO;
+
 	@POST
 	@Secured
 	@Path("/{personaId}/commerce")
@@ -78,32 +51,27 @@ public class Personas {
 
 		CommerceSessionResultTrans commerceSessionResultTrans = new CommerceSessionResultTrans();
 
-		System.out.println(commerceXml.toString());
-
 		CommerceSessionTrans commerceSessionTrans = UnmarshalXML.unMarshal(commerceXml, CommerceSessionTrans.class);
 		List<BasketItemTrans> basketItemTrans = commerceSessionTrans.getBasket().getItems().getBasketItemTrans();
 		CarSlotEntity defaultCarEntity = personaBO.getDefaultCarEntity(personaId);
 		CommerceOp commerceOp = commerceBO.detectCommerceOperation(commerceSessionTrans, defaultCarEntity);
 		commerceBO.updateEconomy(commerceOp, basketItemTrans, commerceSessionTrans, defaultCarEntity);
 		inventoryBO.updateInventory(commerceOp, basketItemTrans, commerceSessionTrans, defaultCarEntity);
+		achievementsBO.updateFromCommerce(commerceOp, commerceSessionTrans, defaultCarEntity);
 		commerceBO.updateCar(commerceOp, commerceSessionTrans, defaultCarEntity);
 
 		commerceSessionResultTrans.setInvalidBasket(new InvalidBasketTrans());
 		ArrayOfInventoryItemTrans arrayOfInventoryItemTrans = new ArrayOfInventoryItemTrans();
 		arrayOfInventoryItemTrans.getInventoryItemTrans().add(new InventoryItemTrans());
 
-		WalletTrans walletTransCash = new WalletTrans();
-		walletTransCash.setBalance(defaultCarEntity.getPersona().getCash());
-		walletTransCash.setCurrency("CASH");
-		
-		WalletTrans walletTransBoost = new WalletTrans();
-		walletTransBoost.setBalance(defaultCarEntity.getPersona().getBoost());
-		walletTransBoost.setCurrency("BOOST");
+		WalletTrans walletTrans = new WalletTrans();
+		walletTrans.setBalance(defaultCarEntity.getPersona().getCash());
+		walletTrans.setCurrency("CASH");
 
 		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
-		arrayOfWalletTrans.getWalletTrans().add(walletTransCash);
-		arrayOfWalletTrans.getWalletTrans().add(walletTransBoost);
+		arrayOfWalletTrans.getWalletTrans().add(walletTrans);
 		commerceSessionResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
+		commerceSessionResultTrans.setStatus(CommerceResultStatus.SUCCESS);
 		commerceSessionResultTrans.setUpdatedCar(OwnedCarConverter.entity2Trans(defaultCarEntity.getOwnedCar()));
 		commerceSessionResultTrans.setWallets(arrayOfWalletTrans);
 		return commerceSessionResultTrans;
@@ -124,15 +92,26 @@ public class Personas {
 		ArrayOfInventoryItemTrans arrayOfInventoryItemTrans = new ArrayOfInventoryItemTrans();
 		arrayOfInventoryItemTrans.getInventoryItemTrans().add(new InventoryItemTrans());
 
-		
+		WalletTrans walletTrans = new WalletTrans();
+		walletTrans.setBalance(personaEntity.getCash());
+		walletTrans.setCurrency("CASH");
+
+		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
+		arrayOfWalletTrans.getWalletTrans().add(walletTrans);
+
+		commerceResultTrans.setWallets(arrayOfWalletTrans);
+		commerceResultTrans.setCommerceItems(new ArrayOfCommerceItemTrans());
+		commerceResultTrans.setInvalidBasket(new InvalidBasketTrans());
+		commerceResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
+
 		ArrayOfOwnedCarTrans arrayOfOwnedCarTrans = new ArrayOfOwnedCarTrans();
-		
+
 		BasketTrans basketTrans = UnmarshalXML.unMarshal(basketXml, BasketTrans.class);
 		String productId = basketTrans.getItems().getBasketItemTrans().get(0).getProductId();
 		if ("-1".equals(productId) || "SRV-GARAGESLOT".equals(productId)) {
 			commerceResultTrans.setStatus(CommerceResultStatus.FAIL_INSUFFICIENT_FUNDS);
-		} else if (productId.equals("SRV-THREVIVE")) {
-			commerceResultTrans.setStatus(basketBO.restoreTreasureHunt(personaEntity));
+		} else if ("SRV-THREVIVE".equals(productId)) {
+			commerceResultTrans.setStatus(basketBO.reviveTh(productId, personaEntity));
 		} else if (productId.contains("SRV-POWERUP")) {
 			commerceResultTrans.setStatus(basketBO.buyPowerups(productId, personaEntity));
 		} else if ("SRV-REPAIR".equals(productId)) {
@@ -141,26 +120,9 @@ public class Personas {
 			OwnedCarTrans ownedCarTrans = new OwnedCarTrans();
 			commerceResultTrans.setPurchasedCars(arrayOfOwnedCarTrans);
 			arrayOfOwnedCarTrans.getOwnedCarTrans().add(ownedCarTrans);
-			
+
 			commerceResultTrans.setStatus(basketBO.buyCar(productId, personaEntity, securityToken));
 		}
-		WalletTrans walletTrans = new WalletTrans();
-		walletTrans.setBalance(personaEntity.getCash());
-		walletTrans.setCurrency("CASH");
-
-		WalletTrans walletTrans2 = new WalletTrans();
-		walletTrans2.setBalance(personaEntity.getBoost());
-		walletTrans2.setCurrency("BOOST");
-
-
-		ArrayOfWalletTrans arrayOfWalletTrans = new ArrayOfWalletTrans();
-		arrayOfWalletTrans.getWalletTrans().add(walletTrans);
-		arrayOfWalletTrans.getWalletTrans().add(walletTrans2);
-
-		commerceResultTrans.setWallets(arrayOfWalletTrans);
-		commerceResultTrans.setCommerceItems(new ArrayOfCommerceItemTrans());
-		commerceResultTrans.setInvalidBasket(new InvalidBasketTrans());
-		commerceResultTrans.setInventoryItems(arrayOfInventoryItemTrans);
 		return commerceResultTrans;
 	}
 
@@ -189,7 +151,7 @@ public class Personas {
 		ProductTrans productTrans = new ProductTrans();
 		productTrans.setBundleItems(new ArrayOfProductTrans());
 		productTrans.setCategoryId("");
-		productTrans.setCurrency("CASH");
+		productTrans.setCurrency("_NS");
 		productTrans.setDescription("New car slot !!");
 		productTrans.setDurationMinute(0);
 		productTrans.setHash(-1143680669);

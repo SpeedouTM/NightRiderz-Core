@@ -1,0 +1,9 @@
+image: gradle
+  
+build:
+  stage: build
+  script:
+    - gradle assemble
+  artifacts:
+    paths:
+      - build/libs/*.war

@@ -1,12 +1,5 @@
 package com.soapboxrace.core.bo;
 
-import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.util.Random;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.bo.util.RewardVO;
 import com.soapboxrace.core.dao.AchievementDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
@@ -14,16 +7,14 @@ import com.soapboxrace.core.dao.TreasureHuntDAO;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.SkillModRewardType;
 import com.soapboxrace.core.jpa.TreasureHuntEntity;
-import com.soapboxrace.jaxb.http.Accolades;
-import com.soapboxrace.jaxb.http.ArbitrationPacket;
-import com.soapboxrace.jaxb.http.ArrayOfLuckyDrawBox;
-import com.soapboxrace.jaxb.http.ArrayOfLuckyDrawItem;
-import com.soapboxrace.jaxb.http.EnumRewardCategory;
-import com.soapboxrace.jaxb.http.EnumRewardType;
-import com.soapboxrace.jaxb.http.LuckyDrawBox;
-import com.soapboxrace.jaxb.http.LuckyDrawInfo;
-import com.soapboxrace.jaxb.http.TreasureHuntEventSession;
+import com.soapboxrace.jaxb.http.*;
 import com.soapboxrace.jaxb.util.MarshalXML;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Random;
 
 @Stateless
 public class EventsBO {
@@ -90,9 +81,14 @@ public class EventsBO {
 
 	public String accolades(Long activePersonaId, Boolean isBroken) {
 		TreasureHuntEntity treasureHuntEntity = treasureHuntDao.findById(activePersonaId);
-	if (isBroken && !treasureHuntEntity.getIsStreakBroken()) {
-		return MarshalXML.marshal(getTreasureHuntAccolades(activePersonaId, treasureHuntEntity));
-	}
+
+		if (isBroken && !treasureHuntEntity.getIsStreakBroken()) {
+			// This happens when TH is revived
+			// Game makes request to /baskets, in BasketBO TH is revived (isStreakBroken = 0)
+			// After that, game makes request here, so we check if isStreakBroken == 0 and
+			// isBroken == 1 (request from /accolades)
+			return MarshalXML.marshal(getTreasureHuntAccolades(activePersonaId, treasureHuntEntity));
+		}
 
 		if (isBroken) {
 			treasureHuntEntity.setStreak(1);
@@ -104,10 +100,16 @@ public class EventsBO {
 
 		treasureHuntEntity.setThDate(LocalDate.now());
 		treasureHuntDao.update(treasureHuntEntity);
-		
-		achievementsBO.update(personaDAO.findById(activePersonaId),
+
+		PersonaEntity persona = personaDAO.findById(activePersonaId);
+
+		achievementsBO.update(persona,
 				achievementDAO.findByName("achievement_ACH_COMPLETE_TH"),
 				1L);
+
+		achievementsBO.update(persona,
+				achievementDAO.findByName("achievement_ACH_WINSTREAK_TH"),
+				(long) treasureHuntEntity.getStreak(), false);
 
 		return MarshalXML.marshal(getTreasureHuntAccolades(activePersonaId, treasureHuntEntity));
 	}

@@ -1,41 +1,24 @@
 package com.soapboxrace.core.bo;
 
-import java.nio.ByteBuffer;
-import java.time.LocalDateTime;
-import java.util.*;
+import com.soapboxrace.core.dao.*;
+import com.soapboxrace.core.jpa.*;
+import com.soapboxrace.core.xmpp.OpenFireRestApiCli;
+import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
+import com.soapboxrace.core.xmpp.XmppChat;
+import com.soapboxrace.core.xmpp.XmppLobby;
+import com.soapboxrace.jaxb.http.*;
+import com.soapboxrace.jaxb.xmpp.*;
+import org.igniterealtime.restclient.entity.MUCRoomEntity;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-
-import com.soapboxrace.core.dao.EventDAO;
-import com.soapboxrace.core.dao.EventSessionDAO;
-import com.soapboxrace.core.dao.LobbyDAO;
-import com.soapboxrace.core.dao.LobbyEntrantDAO;
-import com.soapboxrace.core.dao.PersonaDAO;
-import com.soapboxrace.core.dao.TokenSessionDAO;
-import com.soapboxrace.core.jpa.EventEntity;
-import com.soapboxrace.core.jpa.EventSessionEntity;
-import com.soapboxrace.core.jpa.LobbyEntity;
-import com.soapboxrace.core.jpa.LobbyEntrantEntity;
-import com.soapboxrace.core.jpa.PersonaEntity;
-import com.soapboxrace.core.jpa.TokenSessionEntity;
-import com.soapboxrace.core.xmpp.OpenFireRestApiCli;
-import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
-import com.soapboxrace.core.xmpp.XmppLobby;
-import com.soapboxrace.jaxb.http.ArrayOfLobbyEntrantInfo;
-import com.soapboxrace.jaxb.http.Entrants;
-import com.soapboxrace.jaxb.http.LobbyCountdown;
-import com.soapboxrace.jaxb.http.LobbyEntrantAdded;
-import com.soapboxrace.jaxb.http.LobbyEntrantInfo;
-import com.soapboxrace.jaxb.http.LobbyEntrantRemoved;
-import com.soapboxrace.jaxb.http.LobbyEntrantState;
-import com.soapboxrace.jaxb.http.LobbyInfo;
-import com.soapboxrace.jaxb.xmpp.ChallengeType;
-import com.soapboxrace.jaxb.xmpp.XMPP_CryptoTicketsType;
-import com.soapboxrace.jaxb.xmpp.XMPP_EventSessionType;
-import com.soapboxrace.jaxb.xmpp.XMPP_LobbyInviteType;
-import com.soapboxrace.jaxb.xmpp.XMPP_LobbyLaunchedType;
-import com.soapboxrace.jaxb.xmpp.XMPP_P2PCryptoTicketType;
+import java.nio.ByteBuffer;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Stateless
 public class LobbyBO {
@@ -69,6 +52,9 @@ public class LobbyBO {
 	@EJB
 	private OpenFireSoapBoxCli openFireSoapBoxCli;
 
+	@EJB
+	private AnalyticsBO analyticsBO;
+
 	public void joinFastLobby(Long personaId, int carClassHash) {
 		List<LobbyEntity> lobbys = lobbyDao.findAllOpen(carClassHash);
 		
@@ -83,11 +69,26 @@ public class LobbyBO {
 	public void joinQueueEvent(Long personaId, int eventId) {
 		PersonaEntity personaEntity = personaDao.findById(personaId);
 		EventEntity eventEntity = eventDao.findById(eventId);
+		analyticsBO.sendEvent("Race", "Join Lobby", Integer.toString(eventId), personaEntity.getUser());
 		List<LobbyEntity> lobbys = lobbyDao.findByEventStarted(eventId);
 		if (lobbys.size() == 0) {
 			createLobby(personaEntity, eventId, eventEntity.getCarClassHash(), false);
 		} else {
 			joinLobby(personaEntity, lobbys);
+		}
+	}
+
+	public void sendAnnouncement(PersonaEntity personaEntity, EventEntity eventEntity) {
+		String message = XmppChat.createSystemMessage(personaEntity.getName() + " is looking for racers on " + eventEntity.getName());
+		List<MUCRoomEntity> rooms = openFireRestApiCli.getAllRooms()
+				.stream()
+				.filter(r -> r.getRoomName().startsWith("channel.") && !r.getRoomName().contains("cmd__"))
+				.collect(Collectors.toList());
+		for (MUCRoomEntity room : rooms) {
+			List<Long> occupants = openFireRestApiCli.getAllOccupantsInRoom(room.getRoomName());
+			for (Long occupant : occupants) {
+				openFireSoapBoxCli.send(message, occupant);
+			}
 		}
 	}
 
@@ -209,6 +210,11 @@ public class LobbyBO {
 	public LobbyInfo acceptinvite(Long personaId, Long lobbyInviteId) {
 		LobbyEntity lobbyEntity = lobbyDao.findById(lobbyInviteId);
 		int eventId = lobbyEntity.getEvent().getId();
+
+		if (lobbyEntity.getPersonaId().equals(personaId) && !lobbyEntity.getIsPrivate()) {
+			PersonaEntity personaEntity = personaDao.findById(personaId);
+			sendAnnouncement(personaEntity, lobbyEntity.getEvent());
+		}
 
 		LobbyCountdown lobbyCountdown = new LobbyCountdown();
 		lobbyCountdown.setLobbyId(lobbyInviteId);

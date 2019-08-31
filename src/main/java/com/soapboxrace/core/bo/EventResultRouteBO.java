@@ -1,24 +1,21 @@
 package com.soapboxrace.core.bo;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.dao.AchievementDAO;
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
+import com.soapboxrace.core.jpa.AchievementDefinitionEntity;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppEvent;
-import com.soapboxrace.jaxb.http.ArbitrationPacket;
-import com.soapboxrace.jaxb.http.ArrayOfRouteEntrantResult;
-import com.soapboxrace.jaxb.http.ExitPath;
-import com.soapboxrace.jaxb.http.RouteArbitrationPacket;
-import com.soapboxrace.jaxb.http.RouteEntrantResult;
-import com.soapboxrace.jaxb.http.RouteEventResult;
+import com.soapboxrace.jaxb.http.*;
 import com.soapboxrace.jaxb.xmpp.XMPP_ResponseTypeRouteEntrantResult;
 import com.soapboxrace.jaxb.xmpp.XMPP_RouteEntrantResultType;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 
 @Stateless
 public class EventResultRouteBO {
@@ -127,10 +124,18 @@ public class EventResultRouteBO {
                 default:break;
             }
         }
-        
-        achievementsBO.update(personaDAO.findById(activePersonaId), 
+
+        PersonaEntity persona = personaDAO.findById(activePersonaId);
+
+        achievementsBO.update(persona,
                 achievementDAO.findByName("achievement_ACH_CLOCKED_AIRTIME"), 
                 routeArbitrationPacket.getSumOfJumpsDurationInMilliseconds());
+
+		AchievementDefinitionEntity achievement1 = achievementDAO.findByName("achievement_ACH_DRIVE_MILES");
+		Float distance = eventDataEntity.getEvent().getRanksDistance();
+		if (achievement1 != null && distance != null) {
+			achievementsBO.update(persona, achievement1, (long) (distance * 1000f));
+		}
 		
 		return routeEventResult;
 	}

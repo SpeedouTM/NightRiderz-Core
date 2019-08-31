@@ -27,24 +27,28 @@ public class ChatAnnouncementsBO
 
     private Long ticks = 0L;
 
-    @Schedule(minute = "*", hour = "*", second = "*/1", persistent = false)
+    @Schedule(minute = "*", hour = "*", second = "*/5", persistent = false)
     public void sendMessages()
     {
-        ticks += 1;
+        ticks += 5;
+
+        List<MUCRoomEntity> allRooms = null;
 
         for (ChatAnnouncementEntity announcementEntity : chatAnnouncementDAO.findAll())
         {
-            if (announcementEntity.getAnnouncementInterval() % 1 != 0) continue;
-
-            List<MUCRoomEntity> channels = restApiCli.getAllRooms()
-                    .stream()
-                    .filter(r -> r.getRoomName().startsWith(announcementEntity.getChannelMask().replace("*", "")))
-                    .collect(Collectors.toList());
-
-            String message = XmppChat.createSystemMessage(announcementEntity.getAnnouncementMessage());
+            if (announcementEntity.getAnnouncementInterval() % 5 != 0) continue;
 
             if (ticks % announcementEntity.getAnnouncementInterval() == 0)
             {
+                if (allRooms == null) {
+                    allRooms = restApiCli.getAllRooms();
+                }
+                List<MUCRoomEntity> channels = allRooms.stream()
+                        .filter(r -> r.getRoomName().startsWith(announcementEntity.getChannelMask().replace("*", "")))
+                        .collect(Collectors.toList());
+
+                String message = XmppChat.createSystemMessage(announcementEntity.getAnnouncementMessage());
+
                 for (MUCRoomEntity channel : channels)
                 {
                     List<Long> members = restApiCli.getAllOccupantsInRoom(channel.getRoomName());

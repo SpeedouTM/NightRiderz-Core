@@ -1,25 +1,17 @@
 package com.soapboxrace.core.api;
 
-import java.io.InputStream;
-
-import javax.ejb.EJB;
-import javax.ws.rs.GET;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
 import com.soapboxrace.core.api.util.Secured;
 import com.soapboxrace.core.bo.HardwareInfoBO;
 import com.soapboxrace.core.bo.TokenSessionBO;
 import com.soapboxrace.core.dao.UserDAO;
-import com.soapboxrace.core.jpa.HardwareInfoEntity;
 import com.soapboxrace.core.jpa.UserEntity;
 import com.soapboxrace.jaxb.http.HardwareInfo;
 import com.soapboxrace.jaxb.util.UnmarshalXML;
+
+import javax.ejb.EJB;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.InputStream;
 
 @Path("/Reporting")
 public class Reporting {
@@ -39,9 +31,8 @@ public class Reporting {
 	@Produces(MediaType.APPLICATION_XML)
 	public String sendHardwareInfo(InputStream is, @HeaderParam("securityToken") String securityToken) {
 		HardwareInfo hardwareInfo = UnmarshalXML.unMarshal(is, HardwareInfo.class);
-		HardwareInfoEntity hardwareInfoEntity = hardwareInfoBO.save(hardwareInfo);
 		UserEntity user = tokenBO.getUser(securityToken);
-		user.setGameHardwareHash(hardwareInfoEntity.getHardwareHash());
+		user.setGameHardwareHash(hardwareInfoBO.calcHardwareInfoHash(hardwareInfo));
 		userDAO.update(user);
 		return "";
 	}

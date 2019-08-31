@@ -29,6 +29,7 @@ public class ServerInfoEntity {
 	private String allowedCountries;
 	private String iconUrl;
 	private String modsUrl;
+	private String passwordResetUrl;
 
 	@Convert(converter = SceneryGroupConverter.class)
 	private List<String> activatedHolidaySceneryGroups;
@@ -203,5 +204,13 @@ public class ServerInfoEntity {
 
 	public void setModsUrl(String modsUrl) {
 		this.modsUrl = modsUrl;
+	}
+
+	public String getPasswordResetUrl() {
+		return passwordResetUrl;
+	}
+
+	public void setPasswordResetUrl(String passwordResetUrl) {
+		this.passwordResetUrl = passwordResetUrl;
 	}
 }

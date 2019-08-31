@@ -1,23 +1,21 @@
 package com.soapboxrace.core.bo;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.dao.AchievementDAO;
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
+import com.soapboxrace.core.jpa.AchievementDefinitionEntity;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppEvent;
-import com.soapboxrace.jaxb.http.ArrayOfDragEntrantResult;
-import com.soapboxrace.jaxb.http.DragArbitrationPacket;
-import com.soapboxrace.jaxb.http.DragEntrantResult;
-import com.soapboxrace.jaxb.http.DragEventResult;
-import com.soapboxrace.jaxb.http.ExitPath;
+import com.soapboxrace.jaxb.http.*;
 import com.soapboxrace.jaxb.xmpp.XMPP_DragEntrantResultType;
 import com.soapboxrace.jaxb.xmpp.XMPP_ResponseTypeDragEntrantResult;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 
 @Stateless
 public class EventResultDragBO {
@@ -111,14 +109,22 @@ public class EventResultDragBO {
 		dragEventResult.setLobbyInviteId(0);
 		dragEventResult.setPersonaId(activePersonaId);
 
-		achievementsBO.update(personaDAO.findById(activePersonaId),
+		PersonaEntity persona = personaDAO.findById(activePersonaId);
+
+		achievementsBO.update(persona,
 				achievementDAO.findByName("achievement_ACH_CLOCKED_AIRTIME"),
 				dragArbitrationPacket.getSumOfJumpsDurationInMilliseconds());
 		
 		if (dragArbitrationPacket.getRank() == 1) {
-			achievementsBO.update(personaDAO.findById(activePersonaId),
+			achievementsBO.update(persona,
 					achievementDAO.findByName("achievement_ACH_WIN_DRAG"),
 					1L);
+		}
+
+		AchievementDefinitionEntity achievement1 = achievementDAO.findByName("achievement_ACH_DRIVE_MILES");
+		Float distance = eventDataEntity.getEvent().getRanksDistance();
+		if (achievement1 != null && distance != null) {
+			achievementsBO.update(persona, achievement1, (long) (distance * 1000f));
 		}
 		
 		return dragEventResult;

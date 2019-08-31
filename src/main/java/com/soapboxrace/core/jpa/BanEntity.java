@@ -35,7 +35,10 @@ public class BanEntity {
 	private LocalDateTime endsAt;
 
 	@Column
-	private boolean willEnd;
+	private String hwid;
+
+	@Column
+	private String ip;
 
 	public Long getId() {
 		return id;
@@ -79,16 +82,6 @@ public class BanEntity {
 		this.reason = reason;
 	}
 
-	public boolean isWillEnd()
-	{
-		return willEnd;
-	}
-
-	public void setWillEnd(boolean willEnd)
-	{
-		this.willEnd = willEnd;
-	}
-
 	public LocalDateTime getStarted()
 	{
 		return started;
@@ -97,5 +90,21 @@ public class BanEntity {
 	public void setStarted(LocalDateTime started)
 	{
 		this.started = started;
+	}
+
+	public String getHwid() {
+		return hwid;
+	}
+
+	public void setHwid(String hwid) {
+		this.hwid = hwid;
+	}
+
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
 	}
 }

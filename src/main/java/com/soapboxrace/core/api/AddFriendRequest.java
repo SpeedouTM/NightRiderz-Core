@@ -12,10 +12,13 @@ import com.soapboxrace.core.jpa.FriendEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppChat;
+import com.soapboxrace.jaxb.http.ArrayOfBadgePacket;
 import com.soapboxrace.jaxb.http.FriendPersona;
 import com.soapboxrace.jaxb.http.FriendResult;
+import com.soapboxrace.jaxb.http.PersonaBase;
 import com.soapboxrace.jaxb.util.MarshalXML;
 import com.soapboxrace.jaxb.xmpp.XMPP_FriendPersonaType;
+import com.soapboxrace.jaxb.xmpp.XMPP_ResponseTypePersonaBase;
 
 import java.util.Objects;
 
@@ -52,8 +55,8 @@ public class AddFriendRequest
 			return "";
 		}
 
-		openFireSoapBoxCli.send(XmppChat.createSystemMessage("Sent friend request!"), activePersonaId);
-		openFireSoapBoxCli.send(XmppChat.createSystemMessage(String.format("You received a friend request from %s!", active.getName())), target.getPersonaId());
+//		openFireSoapBoxCli.send(XmppChat.createSystemMessage("Sent friend request!"), activePersonaId);
+//		openFireSoapBoxCli.send(XmppChat.createSystemMessage(String.format("You received a friend request from %s!", active.getName())), target.getPersonaId());
 
 		FriendResult friendResult = new FriendResult();
 		FriendPersona resultFriendPersona = new FriendPersona();

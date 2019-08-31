@@ -65,6 +65,8 @@ public class EventDataEntity {
 	protected int bustedCount;
 	protected float distanceToFinish;
 
+	private float playHours;
+
 	@PrePersist
 	protected void onCreate() {
 		createdAt = new Date();
@@ -300,4 +302,11 @@ public class EventDataEntity {
 		this.distanceToFinish = value;
 	}
 
+	public float getPlayHours() {
+		return playHours;
+	}
+
+	public void setPlayHours(float playHours) {
+		this.playHours = playHours;
+	}
 }

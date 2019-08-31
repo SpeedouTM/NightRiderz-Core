@@ -1,13 +1,6 @@
 package com.soapboxrace.core.jpa;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "EVENT")
@@ -60,6 +53,7 @@ public class EventEntity {
 	private float rank8CashMultiplier;
 	private float minTopSpeedTrigger;
 	private long legitTime;
+	private Float ranksDistance;
 
 	public int getId() {
 		return id;
@@ -381,4 +375,11 @@ public class EventEntity {
 		this.carClassHash = carClassHash;
 	}
 
+	public Float getRanksDistance() {
+		return ranksDistance;
+	}
+
+	public void setRanksDistance(Float ranksDistance) {
+		this.ranksDistance = ranksDistance;
+	}
 }

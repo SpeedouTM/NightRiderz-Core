@@ -3,17 +3,21 @@ package com.soapboxrace.core.jpa;
 
 import com.soapboxrace.core.jpa.convert.BadgesConverter;
 import com.soapboxrace.jaxb.http.BadgePacket;
-
-import java.time.LocalDateTime;
-import java.util.List;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import javax.persistence.*;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.List;
 
 @Entity
 @Table(name = "PERSONA")
 @NamedQueries({ //
 		@NamedQuery(name = "PersonaEntity.findByName", query = "SELECT obj FROM PersonaEntity obj WHERE obj.name = :name") //
 })
+@SQLDelete(sql = "UPDATE PERSONA SET deletedAt = NOW() where id = ?")
+@Where(clause = "deletedAt IS NULL")
 public class PersonaEntity {
 
 	@Id
@@ -42,6 +46,8 @@ public class PersonaEntity {
 	@Column(length = 2048)
 	@Convert(converter = BadgesConverter.class)
 	private List<BadgePacket> badges;
+
+	private Date deletedAt;
 
 	public double getBoost() {
 		return boost;
@@ -171,5 +177,13 @@ public class PersonaEntity {
 	public void setBadges(List<BadgePacket> badges)
 	{
 		this.badges = badges;
+	}
+
+	public Date getDeletedAt() {
+		return deletedAt;
+	}
+
+	public void setDeletedAt(Date deletedAt) {
+		this.deletedAt = deletedAt;
 	}
 }

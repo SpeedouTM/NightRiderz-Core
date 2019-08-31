@@ -1,10 +1,7 @@
 package com.soapboxrace.core.api.util;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
+import com.soapboxrace.jaxb.annotation.XsiSchemaLocation;
+import com.soapboxrace.jaxb.util.JAXBContextCache;
 
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
@@ -19,12 +16,19 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-
-import com.soapboxrace.jaxb.annotation.XsiSchemaLocation;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 @Provider
 @Produces(MediaType.APPLICATION_XML)
 public class MarshallerInterceptor implements MessageBodyWriter<Object> {
+
+	private Map<Class<?>, JAXBContext> contextCache = new HashMap<>();
 
 	@Context
 	protected Providers providers;
@@ -39,7 +43,7 @@ public class MarshallerInterceptor implements MessageBodyWriter<Object> {
 	public void writeTo(Object object, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders,
 			OutputStream entityStream) throws IOException, WebApplicationException {
 		try {
-			JAXBContext jaxbContext = JAXBContext.newInstance(object.getClass());
+			JAXBContext jaxbContext = JAXBContextCache.get(object.getClass());
 			Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 			jaxbMarshaller.setProperty(Marshaller.JAXB_FRAGMENT, true);

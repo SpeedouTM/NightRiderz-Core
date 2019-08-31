@@ -1,6 +1,8 @@
 package com.soapboxrace.core.api.util;
 
-import java.io.IOException;
+import com.soapboxrace.core.bo.HardwareInfoBO;
+import com.soapboxrace.core.bo.TokenSessionBO;
+import com.soapboxrace.core.jpa.UserEntity;
 
 import javax.annotation.Priority;
 import javax.ejb.EJB;
@@ -11,10 +13,7 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.ext.Provider;
-
-import com.soapboxrace.core.bo.HardwareInfoBO;
-import com.soapboxrace.core.bo.TokenSessionBO;
-import com.soapboxrace.core.jpa.UserEntity;
+import java.io.IOException;
 
 @Secured
 @Provider

@@ -1,18 +1,16 @@
 package com.soapboxrace.core.bo;
 
-import java.util.List;
-
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.dao.EventDAO;
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
-import com.soapboxrace.core.jpa.EventDataEntity;
-import com.soapboxrace.core.jpa.EventEntity;
-import com.soapboxrace.core.jpa.EventSessionEntity;
-import com.soapboxrace.core.jpa.PersonaEntity;
+import com.soapboxrace.core.jpa.*;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Stateless
 public class EventBO {
@@ -34,12 +32,13 @@ public class EventBO {
 		return eventDao.findByLevel(personaEntity.getLevel());
 	}
 
-	public void createEventDataSession(Long personaId, Long eventSessionId) {
+	public void createEventDataSession(Long personaId, Long eventSessionId, UserEntity user) {
 		EventSessionEntity eventSessionEntity = findEventSessionById(eventSessionId);
 		EventDataEntity eventDataEntity = new EventDataEntity();
 		eventDataEntity.setPersonaId(personaId);
 		eventDataEntity.setEventSessionId(eventSessionId);
 		eventDataEntity.setEvent(eventSessionEntity.getEvent());
+		eventDataEntity.setPlayHours((float)Duration.between(user.getLastLogin(), LocalDateTime.now()).toHours());
 		eventDataDao.insert(eventDataEntity);
 	}
 

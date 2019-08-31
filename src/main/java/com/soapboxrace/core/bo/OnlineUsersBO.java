@@ -1,4 +1,3 @@
-
 package com.soapboxrace.core.bo;
 
 import com.soapboxrace.core.xmpp.OpenFireRestApiCli;

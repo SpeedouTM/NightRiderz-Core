@@ -1,5 +1,8 @@
 package com.soapboxrace.jaxb.xmpp;
 
+import com.soapboxrace.jaxb.http.FriendPersona;
+import com.soapboxrace.jaxb.http.PersonaBase;
+
 import javax.xml.bind.annotation.*;
 
 @XmlAccessorType(XmlAccessType.FIELD)
