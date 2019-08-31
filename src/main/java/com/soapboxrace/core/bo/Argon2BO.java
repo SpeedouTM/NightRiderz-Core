@@ -3,6 +3,7 @@ package com.soapboxrace.core.bo;
 import de.mkammerer.argon2.Argon2;
 import de.mkammerer.argon2.Argon2Factory;
 import de.mkammerer.argon2.Argon2Helper;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
@@ -20,12 +21,13 @@ public class Argon2BO {
     @PostConstruct
     public void init() {
         iterations = Argon2Helper.findIterations(argon2, timeCost, memoryCost, parallelism);
-        System.out.format("Argon2 Init; timeCost = %d, memoryCost = %d, parallelism = %d, iterations = %d\n",
+        LoggerFactory.getLogger("Argon2").info(
+                "Argon2 Init; timeCost = {}, memoryCost = {}, parallelism = {}, iterations = {}",
                 timeCost, memoryCost, parallelism, iterations);
     }
 
     public String hash(String password) {
-         return argon2.hash(iterations, memoryCost, parallelism, password);
+         return argon2.hash(iterations+1, memoryCost, parallelism, password);
     }
 
     public boolean verify(String password, String hash) {

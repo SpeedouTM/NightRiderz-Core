@@ -1,18 +1,23 @@
 package com.soapboxrace.core.api;
 
-import java.util.GregorianCalendar;
+import com.soapboxrace.core.api.util.Secured;
+import com.soapboxrace.core.api.util.VersionUtil;
+import com.soapboxrace.core.bo.ParameterBO;
 
+import javax.ejb.EJB;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.soapboxrace.core.api.util.Secured;
+import java.util.GregorianCalendar;
 
 @Path("/systeminfo")
 public class SystemInfo {
+
+	@EJB
+	private ParameterBO parameterBO;
 
 	@GET
 	@Secured
@@ -30,9 +35,13 @@ public class SystemInfo {
 		systemInfo.setLauncherServiceUrl("http://127.0.0.1");
 		systemInfo.setNucleusNamespace("sbrw-live");
 		systemInfo.setNucleusNamespaceWeb("sbr_web");
-		systemInfo.setPersonaCacheTimeout(2000);
-		systemInfo.setPortalDomain("nightriderz.world");
-		systemInfo.setPortalStoreFailurePage("nightriderz.world/fail");
+		systemInfo.setPersonaCacheTimeout(5000);
+		String portalDomain = parameterBO.getStrParam("PORTAL_DOMAIN");
+		if (portalDomain == null) {
+			portalDomain = "localhost";
+		}
+		systemInfo.setPortalDomain(portalDomain);
+		systemInfo.setPortalStoreFailurePage(portalDomain + "/fail");
 		systemInfo.setPortalTimeOut("6000");
 		systemInfo.setShardName("CORE");
 		GregorianCalendar c = new GregorianCalendar();
@@ -42,7 +51,7 @@ public class SystemInfo {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		systemInfo.setVersion("1599");
+		systemInfo.setVersion(VersionUtil.getVersionHash());
 		return systemInfo;
 	}
 }

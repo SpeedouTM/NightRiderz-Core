@@ -1,5 +1,8 @@
 package com.soapboxrace.core.xmpp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -8,6 +11,8 @@ import java.net.Socket;
 
 public class SocketClient
 {
+
+    final Logger logger = LoggerFactory.getLogger(SocketClient.class);
 
     private Socket socket;
     private BufferedReader in;
@@ -20,7 +25,7 @@ public class SocketClient
         {
             if (tries >= 20)
             {
-                System.err.println("Failed to connect to XMPP host");
+                logger.error("Failed to connect to XMPP host");
                 System.exit(1);
                 break;
             }
@@ -28,15 +33,16 @@ public class SocketClient
             try
             {
                 tries++;
-                System.out.println("Attempting to connect to OpenFire XMPP Host. Attempt #" + String.valueOf(tries));
+                logger.info("Attempting to connect to OpenFire XMPP Host. Attempt #" + String.valueOf(tries));
                 socket = new Socket(srvAddress, port);
                 out = new PrintWriter(this.socket.getOutputStream(), true);
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                System.out.println("Connected to OpenFire XMPP Host...");
+                logger.info("Connected to OpenFire XMPP Host...");
                 break;
             } catch (Exception e)
             {
-                System.out.println("Failed, retrying.");
+                logger.error("Failed, retrying.");
+                logger.error(e.toString());
                 try
                 {
                     Thread.sleep(1000);

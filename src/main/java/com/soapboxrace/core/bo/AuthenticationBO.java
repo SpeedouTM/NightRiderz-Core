@@ -13,6 +13,21 @@ public class AuthenticationBO {
 	private BanDAO banDAO;
 
 	public BanEntity checkUserBan(UserEntity userEntity) {
-		return banDAO.findByUser(userEntity);
+		BanEntity userBan = banDAO.findByUser(userEntity);
+		if (userBan != null) {
+			return userBan;
+		}
+		String hwid = userEntity.getGameHardwareHash();
+		if (hwid != null) {
+			BanEntity hwidBan = banDAO.findByHardwareHash(hwid);
+			if (hwidBan != null) {
+				return hwidBan;
+			}
+		}
+		String ip = userEntity.getIpAddress();
+		if (ip != null) {
+			return banDAO.findByIpAddress(ip);
+		}
+		return null;
 	}
 }

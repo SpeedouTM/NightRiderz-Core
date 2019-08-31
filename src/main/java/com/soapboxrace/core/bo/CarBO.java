@@ -41,7 +41,7 @@ public class CarBO
         carBrandMap.put("CAPRI", "FORD");
         carBrandMap.put("CARRERA", "PORSCHE");
         carBrandMap.put("CATERHAM", "CATERHAM");
-        carBrandMap.put("CAYMAN", "PROSCHE");
+        carBrandMap.put("CAYMAN", "PORSCHE");
         carBrandMap.put("CCX", "KOENIGSEGG");
         carBrandMap.put("CCXR", "KOENIGSEGG");
         carBrandMap.put("CHALLENGER", "DODGE");
@@ -49,8 +49,8 @@ public class CarBO
         carBrandMap.put("CHEVELLE", "CHEVROLET");
         carBrandMap.put("CLIO", "RENAULTSPORT");
         carBrandMap.put("COBALT", "CHEVROLET");
-        carBrandMap.put("COBRA", "CHEVROLET");
-        carBrandMap.put("COBRADAYTONA", "CHEVROLET");
+        carBrandMap.put("COBRA", "SHELBY");
+        carBrandMap.put("COBRADAYTONA", "SHELBY");
         carBrandMap.put("CONTINENTAL", "BENTLEY");
         carBrandMap.put("COROLLA", "TOYOTA");
         carBrandMap.put("CORVETTE", "CHEVROLET");
@@ -60,7 +60,7 @@ public class CarBO
         carBrandMap.put("DBS", "ASTONMARTIN");
         carBrandMap.put("DELTAHF", "LANCIA");
         carBrandMap.put("DIABLOSV", "LAMBORGHINI");
-        carBrandMap.put("DUMP", "UNLOCALIZED_STRING");
+        carBrandMap.put("DUMP", "UNLOCALISED_STRING");
         carBrandMap.put("E92", "BMW");
         carBrandMap.put("ECLIPSE", "MITSUBISHI");
         carBrandMap.put("ELCAMINO", "CHEVROLET");
@@ -91,7 +91,7 @@ public class CarBO
         carBrandMap.put("GTR", "NISSAN");
         carBrandMap.put("H1", "HUMMER");
         carBrandMap.put("H1ALPHA", "HUMMER");
-        carBrandMap.put("HELI", "BUGATTI");
+        carBrandMap.put("HELI", "UNLOCALIZED_STRING");
         carBrandMap.put("HEMICUDA", "PLYMOUTH");
         carBrandMap.put("IMPREZA", "SUBARU");
         carBrandMap.put("IS300", "LEXUS");
@@ -125,13 +125,13 @@ public class CarBO
         carBrandMap.put("MX5", "MAZDA");
         carBrandMap.put("PANAMERA", "PORSCHE");
         carBrandMap.put("PICKUP", "UNLOCALIZED_STRING");
-        carBrandMap.put("POLICEINTERCEPTOR", "FORD");
+        carBrandMap.put("POLICEINTERCEPTOR", "UNLOCALIZED_STRING");
         carBrandMap.put("QUATTRO20V", "AUDI");
         carBrandMap.put("R32", "VOLKSWAGEN");
         carBrandMap.put("R34GTR", "NISSAN");
         carBrandMap.put("R8", "AUDI");
         carBrandMap.put("REVENTON", "LAMBORGHINI");
-        carBrandMap.put("RHINO", "JEEP");
+        carBrandMap.put("RHINO", "UNLOCALIZED_STRING");
         carBrandMap.put("ROADRUNNER", "PLYMOUTH");
         carBrandMap.put("RS4", "AUDI");
         carBrandMap.put("RTRX", "FORD");
@@ -155,19 +155,16 @@ public class CarBO
         carBrandMap.put("TAXI", "UNLOCALIZED_STRING");
         carBrandMap.put("TTRS", "AUDI");
         carBrandMap.put("UCMUS", "UNLOCALIZED_STRING");
-        carBrandMap.put("COPSPORTGHOST", "LAMBORGHINI");
         carBrandMap.put("V12", "ASTONMARTIN");
-        carBrandMap.put("VEYRON", "BUGATTI");
-        carBrandMap.put("COPHELI", "BUGATTI");
+        carBrandMap.put("VEYRON", "BUGGATTI");
         carBrandMap.put("VIPER", "DODGE");
         carBrandMap.put("XKR", "JAGUAR");
         carBrandMap.put("Z4", "BMW");
         carBrandMap.put("ZONDA", "PAGANI");
-        carBrandMap.put("COPSPORT", "LAMBORGHINI");
     }
 
     public String getBrand(String carId)
     {
-        return carBrandMap.getOrDefault(carId, "UNLOCALIZED_STRING");
+        return carBrandMap.getOrDefault(carId, "UNLOCALIZED STRING");
     }
 }

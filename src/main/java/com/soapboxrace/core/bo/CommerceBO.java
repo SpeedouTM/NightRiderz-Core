@@ -1,45 +1,22 @@
 package com.soapboxrace.core.bo;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.soapboxrace.core.bo.util.CommerceOp;
+import com.soapboxrace.core.bo.util.OwnedCarConverter;
+import com.soapboxrace.core.dao.*;
+import com.soapboxrace.core.jpa.*;
+import com.soapboxrace.jaxb.http.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
-
-import com.soapboxrace.core.bo.util.CommerceOp;
-import com.soapboxrace.core.bo.util.OwnedCarConverter;
-import com.soapboxrace.core.dao.CarClassesDAO;
-import com.soapboxrace.core.dao.CarSlotDAO;
-import com.soapboxrace.core.dao.InventoryDAO;
-import com.soapboxrace.core.dao.InventoryItemDAO;
-import com.soapboxrace.core.dao.PaintDAO;
-import com.soapboxrace.core.dao.PerformancePartDAO;
-import com.soapboxrace.core.dao.PersonaDAO;
-import com.soapboxrace.core.dao.ProductDAO;
-import com.soapboxrace.core.dao.SkillModPartDAO;
-import com.soapboxrace.core.dao.VinylDAO;
-import com.soapboxrace.core.dao.VinylProductDAO;
-import com.soapboxrace.core.dao.VisualPartDAO;
-import com.soapboxrace.core.jpa.CarClassesEntity;
-import com.soapboxrace.core.jpa.CarSlotEntity;
-import com.soapboxrace.core.jpa.CustomCarEntity;
-import com.soapboxrace.core.jpa.InventoryItemEntity;
-import com.soapboxrace.core.jpa.PerformancePartEntity;
-import com.soapboxrace.core.jpa.PersonaEntity;
-import com.soapboxrace.core.jpa.ProductEntity;
-import com.soapboxrace.core.jpa.VinylProductEntity;
-import com.soapboxrace.jaxb.http.BasketItemTrans;
-import com.soapboxrace.jaxb.http.CommerceSessionTrans;
-import com.soapboxrace.jaxb.http.CustomCarTrans;
-import com.soapboxrace.jaxb.http.CustomPaintTrans;
-import com.soapboxrace.jaxb.http.EntitlementItemTrans;
-import com.soapboxrace.jaxb.http.OwnedCarTrans;
-import com.soapboxrace.jaxb.http.PerformancePartTrans;
-import com.soapboxrace.jaxb.http.SkillModPartTrans;
-import com.soapboxrace.jaxb.http.VisualPartTrans;
+import java.util.ArrayList;
+import java.util.List;
 
 @Stateless
 public class CommerceBO {
+	private final Logger LOGGER = LoggerFactory.getLogger(CommerceBO.class);
+
 	@EJB
 	private PersonaBO personaBO;
 
@@ -156,7 +133,7 @@ public class CommerceBO {
 		carSlotDAO.update(defaultCarEntity);
 	}
 
-	private void calcNewCarClass(CustomCarEntity customCarEntity) {
+	public void calcNewCarClass(CustomCarEntity customCarEntity) {
 		int physicsProfileHash = customCarEntity.getPhysicsProfileHash();
 		CarClassesEntity carClassesEntity = carClassesDAO.findByHash(physicsProfileHash);
 		if(carClassesEntity == null) {
@@ -169,13 +146,29 @@ public class CommerceBO {
 		for (PerformancePartEntity performancePartEntity : performanceParts) {
 			int perfHash = performancePartEntity.getPerformancePartAttribHash();
 			ProductEntity productEntity = productDAO.findByHash(perfHash);
-			topSpeed = productEntity.getTopSpeed() + topSpeed;
-			accel = productEntity.getAccel() + accel;
-			handling = productEntity.getHandling() + handling;
+			if (productEntity == null) {
+				LOGGER.warn("Product {} doesn't exist (cc.id={})", perfHash, customCarEntity.getId());
+				continue;
+			}
+			if (productEntity.getTopSpeed() != null) {
+				topSpeed += productEntity.getTopSpeed();
+			} else {
+				LOGGER.warn("Product {} has null topSpeed (cc.id={})", perfHash, customCarEntity.getId());
+			}
+			if (productEntity.getTopSpeed() != null) {
+				accel += productEntity.getAccel();
+			} else {
+				LOGGER.warn("Product {} has null accel (cc.id={})", perfHash, customCarEntity.getId());
+			}
+			if (productEntity.getTopSpeed() != null) {
+				handling += productEntity.getHandling();
+			} else {
+				LOGGER.warn("Product {} has null handling (cc.id={})", perfHash, customCarEntity.getId());
+			}
 		}
-		float tt = (float) (topSpeed * 0.01);
-		float ta = (float) (accel * 0.01);
-		float th = (float) (handling * 0.01);
+		float tt = ((float) topSpeed) * 0.01f;
+		float ta = ((float) accel) * 0.01f;
+		float th = ((float) handling) * 0.01f;
 		float totalChanges = 1 / (((tt + ta + th) * 0.666666666666666f) + 1f);
 		tt = tt * totalChanges;
 		ta = ta * totalChanges;
@@ -188,23 +181,17 @@ public class CommerceBO {
 		Float finalTopSpeed = (finalConstant * carClassesEntity.getTsStock().floatValue()) + finalTopSpeed1 + finalTopSpeed2
 				+ finalTopSpeed3;
 
-		System.out.println(finalTopSpeed.intValue());
-
 		Float finalAccel1 = carClassesEntity.getAcVar1().floatValue() * th;
 		Float finalAccel2 = carClassesEntity.getAcVar2().floatValue() * ta;
 		Float finalAccel3 = carClassesEntity.getAcVar3().floatValue() * tt;
 		Float finalAccel = (finalConstant * carClassesEntity.getAcStock().floatValue()) + finalAccel1 + finalAccel2
 				+ finalAccel3;
 
-		System.out.println(finalAccel.intValue());
-
 		Float finalHandling1 = carClassesEntity.getHaVar1().floatValue() * th;
 		Float finalHandling2 = carClassesEntity.getHaVar2().floatValue() * ta;
 		Float finalHandling3 = carClassesEntity.getHaVar3().floatValue() * tt;
 		Float finalHandling = (finalConstant * carClassesEntity.getHaStock().floatValue()) + finalHandling1 + finalHandling2
 				+ finalHandling3;
-
-		System.out.println(finalHandling.intValue());
 
 		Float finalClass = (finalTopSpeed.intValue() + finalAccel.intValue() + finalHandling.intValue()) / 3f;
 		System.out.println(finalClass.intValue());
@@ -316,8 +303,6 @@ public class CommerceBO {
 		}
 	}
 
-
-	
 	private Float getVinylTotalValue(List<BasketItemTrans> basketItemTransList) {
 		Float price = 0F;
 		for (BasketItemTrans basketItemTrans : basketItemTransList) {

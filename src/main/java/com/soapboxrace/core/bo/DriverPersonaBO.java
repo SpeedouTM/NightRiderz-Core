@@ -60,7 +60,7 @@ public class DriverPersonaBO {
 	public ProfileData createPersona(Long userId, PersonaEntity personaEntity) {
 		UserEntity userEntity = userDao.findById(userId);
 
-		if (userEntity.getListOfProfile().size() >= 5) {
+		if (userEntity.getListOfProfile().size() >= 3) {
 			return null;
 		}
 
@@ -80,7 +80,6 @@ public class DriverPersonaBO {
 		ProfileData profileData = new ProfileData();
 		// switch to apache beanutils copy
 		profileData.setName(personaEntity.getName());
-		profileData.setBoost(personaEntity.getBoost());
 		profileData.setCash(personaEntity.getCash());
 		profileData.setIconIndex(personaEntity.getIconIndex());
 		profileData.setPersonaId(personaEntity.getPersonaId());
@@ -117,7 +116,6 @@ public class DriverPersonaBO {
 		profileData.setRep(personaEntity.getRep());
 		profileData.setRepAtCurrentLevel(personaEntity.getRepAtCurrentLevel());
 		profileData.setScore(personaEntity.getScore());
-		profileData.setBoost(personaEntity.getBoost());
 		return profileData;
 	}
 

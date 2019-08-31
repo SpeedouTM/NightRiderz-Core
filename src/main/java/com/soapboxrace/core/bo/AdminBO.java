@@ -2,11 +2,9 @@ package com.soapboxrace.core.bo;
 
 import com.soapboxrace.core.api.util.MiscUtils;
 import com.soapboxrace.core.dao.BanDAO;
-import com.soapboxrace.core.dao.HardwareInfoDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
 import com.soapboxrace.core.dao.UserDAO;
 import com.soapboxrace.core.jpa.BanEntity;
-import com.soapboxrace.core.jpa.HardwareInfoEntity;
 import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.jpa.UserEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
@@ -14,7 +12,17 @@ import com.soapboxrace.core.xmpp.XmppChat;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Stateless
 public class AdminBO {
@@ -31,18 +39,25 @@ public class AdminBO {
 	private BanDAO banDAO;
 
 	@EJB
-	private HardwareInfoDAO hardwareInfoDAO;
+	private OpenFireSoapBoxCli openFireSoapBoxCli;
 
 	@EJB
-	private OpenFireSoapBoxCli openFireSoapBoxCli;
+	private ParameterBO parameterBO;
 
 	public void sendCommand(Long personaId, Long abuserPersonaId, String command)
 	{
-		CommandInfo commandInfo = CommandInfo.parse(command);
-		PersonaEntity personaEntity = personaDao.findById(abuserPersonaId);
+	}
 
-		if (personaEntity == null)
+	public void sendChatCommand(Long personaId, String command)
+	{
+		CommandInfo commandInfo = CommandInfo.parse(command, true);
+		if (commandInfo == null) return;
+
+		PersonaEntity personaEntity = personaDao.findByName(commandInfo.personaName);
+		if (personaEntity == null) {
+			openFireSoapBoxCli.send(XmppChat.createSystemMessage("Cannot find the user!"), personaId);
 			return;
+		}
 
 		switch (commandInfo.action)
 		{
@@ -84,17 +99,11 @@ public class AdminBO {
 		banEntity.setStarted(LocalDateTime.now());
 		banEntity.setReason(reason);
 		banEntity.setBannedBy(bannedBy);
-		banEntity.setWillEnd(endsOn != null);
+		banEntity.setHwid(userEntity.getGameHardwareHash());
+		banEntity.setIp(userEntity.getIpAddress());
 		banDAO.insert(banEntity);
-		userDao.update(userEntity);
 		sendKick(userEntity.getId(), personaEntity.getPersonaId());
-
-		HardwareInfoEntity hardwareInfoEntity = hardwareInfoDAO.findByUserId(userEntity.getId());
-
-		if (hardwareInfoEntity != null) {
-			hardwareInfoEntity.setBanned(true);
-			hardwareInfoDAO.update(hardwareInfoEntity);
-		}
+		banWebhook(banEntity, personaEntity);
 	}
 
 	private void sendKick(Long userId, Long personaId)
@@ -103,30 +112,60 @@ public class AdminBO {
 		tokenSessionBo.deleteByUserId(userId);
 	}
 
+	private void banWebhook(BanEntity banEntity, PersonaEntity personaEntity) {
+		if (parameterBO.getStrParam("BAN_WEBHOOK") == null) {
+			return;
+		}
+		Map<String, Object> field1 = new HashMap<>();
+		field1.put("name", "Player");
+		field1.put("value", personaEntity.getName());
+		field1.put("inline", true);
+
+		Map<String, Object> field2 = new HashMap<>();
+		field2.put("name", "Reason");
+		field2.put("value", banEntity.getReason());
+		field1.put("inline", true);
+
+		Map<String, Object> embed = new HashMap<>();
+		embed.put("title", ":hammer: Player banned");
+		embed.put("color", 0xff0000);
+		ZonedDateTime zonedDateTime = banEntity.getStarted().atZone(ZoneId.systemDefault());
+		embed.put("timestamp", zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+		embed.put("fields", Arrays.asList(field1, field2));
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("embeds", Collections.singletonList(embed));
+		ClientBuilder.newClient()
+				.target(parameterBO.getStrParam("BAN_WEBHOOK"))
+				.request(MediaType.APPLICATION_JSON_TYPE)
+				.post(Entity.json(map));
+	}
+
 	private static class CommandInfo
 	{
 		public CommandInfo.CmdAction action;
 		public String reason;
 		public LocalDateTime timeEnd;
+		public String personaName;
 
 		public enum CmdAction
 		{
 			KICK,
 			BAN,
-			ALERT,
-			UNBAN,
-			UNKNOWN
+			UNBAN
 		}
 
-		public static CommandInfo parse(String cmd)
+		public static CommandInfo parse(String cmd, boolean withName)
 		{
-			cmd = cmd.replaceFirst("/", "");
+			cmd = cmd.replaceFirst("/", "").trim();
 
-			String[] split = cmd.split(" ");
+			String[] splits = cmd.split(" ");
+			if (splits.length == 0) return null;
+
 			CommandInfo.CmdAction action;
 			CommandInfo info = new CommandInfo();
 
-			switch (split[0].toLowerCase().trim())
+			switch (splits[0].toLowerCase())
 			{
 				case "ban":
 					action = CmdAction.BAN;
@@ -138,11 +177,11 @@ public class AdminBO {
 					action = CmdAction.UNBAN;
 					break;
 				default:
-					action = CmdAction.UNKNOWN;
-					break;
+					return null;
 			}
 
 			info.action = action;
+			info.personaName = splits[1];
 
 			switch (action)
 			{
@@ -151,21 +190,21 @@ public class AdminBO {
 					LocalDateTime endTime;
 					String reason = null;
 
-					if (split.length >= 2)
+					if (splits.length > 2)
 					{
-						long givenTime = MiscUtils.lengthToMiliseconds(split[1]);
+						long givenTime = MiscUtils.lengthToMiliseconds(splits[2]);
 						if (givenTime != 0)
 						{
 							endTime = LocalDateTime.now().plusSeconds(givenTime / 1000);
 							info.timeEnd = endTime;
 
-							if (split.length > 2)
+							if (splits.length > 3)
 							{
-								reason = MiscUtils.argsToString(split, 2, split.length);
+								reason = MiscUtils.argsToString(splits, 3, splits.length);
 							}
 						} else
 						{
-							reason = MiscUtils.argsToString(split, 1, split.length);
+							reason = MiscUtils.argsToString(splits, 2, splits.length);
 						}
 					}
 

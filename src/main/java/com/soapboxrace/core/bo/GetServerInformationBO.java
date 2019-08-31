@@ -1,5 +1,6 @@
 package com.soapboxrace.core.bo;
 
+import com.soapboxrace.core.api.util.VersionUtil;
 import com.soapboxrace.core.dao.ServerInfoDAO;
 import com.soapboxrace.core.jpa.ServerInfoEntity;
 
@@ -25,7 +26,7 @@ public class GetServerInformationBO {
 		if (ticketToken != null && !ticketToken.equals("null")) {
 			serverInfoEntity.setRequireTicket(true);
 		}
-		serverInfoEntity.setServerVersion("1.3.1");
+		serverInfoEntity.setServerVersion(VersionUtil.getVersionHash());
 
 		int maxOnlinePlayers = parameterBO.getIntParam("MAX_ONLINE_PLAYERS");
 		if (maxOnlinePlayers != 0) {

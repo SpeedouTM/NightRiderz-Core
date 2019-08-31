@@ -229,7 +229,7 @@ public class User
 	@LauncherChecks
 	public Response createUser(@QueryParam("email") String email, @QueryParam("password") String password, @QueryParam("inviteTicket") String inviteTicket)
 	{
-		LoginStatusVO loginStatusVO = userBO.createUserWithTicket(email, password, inviteTicket);
+		LoginStatusVO loginStatusVO = userBO.createUserWithTicket(email, password, inviteTicket, sr);
 		if (loginStatusVO != null && loginStatusVO.isLoginOk())
 		{
 			loginStatusVO = tokenBO.login(email, password, sr);
@@ -245,12 +245,19 @@ public class User
 	@LauncherChecks
 	public Response modernRegister(ModernRegisterRequest req)
 	{
+		String message = "Account created! But before logging in, you need to verify your email.";
 		try {
-			userBO.createModernUser(req.getEmail(), req.getPassword(), req.getTicket());
+			userBO.createModernUser(req.getEmail(), req.getPassword(), req.getTicket(), sr);
 		} catch (AuthException e) {
 			return Response.status(Response.Status.BAD_REQUEST).entity(new JSONError(e.getMessage())).build();
 		}
-		return Response.ok(new ModernRegisterResponse("Account created!")).build();
+		String xUA = sr.getHeader("X-User-Agent");
+		if (xUA != null && xUA.startsWith("electron-launcher/")) {
+			return Response.ok(new ModernRegisterResponse(message)).build();
+		} else {
+			// meto pls fix
+			return Response.status(Response.Status.BAD_REQUEST).entity(new JSONError(message)).build();
+		}
 	}
 
 	@POST
@@ -261,10 +268,20 @@ public class User
 	public Response modernAuth(ModernAuthRequest req)
 	{
 		try {
-			ModernAuthResponse resp = tokenBO.modernLogin(req.getEmail(), req.getPassword(), req.getUpgrade());
+			ModernAuthResponse resp = tokenBO.modernLogin(req.getEmail(), req.getPassword(), req.getUpgrade(), sr);
 			return Response.ok(resp).build();
 		} catch (AuthException e) {
 			return Response.status(Response.Status.BAD_REQUEST).entity(new JSONError(e.getMessage())).build();
 		}
+	}
+
+	@GET
+	@Path("verify")
+	@Produces(MediaType.TEXT_PLAIN)
+	public String verifyEmail(@QueryParam("token") String token) {
+		if (userBO.verifyEmail(token)) {
+			return "Email verified successfully! You can play now.";
+		}
+		return "Failed to verify your email!";
 	}
 }

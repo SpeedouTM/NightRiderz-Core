@@ -1,0 +1,4 @@
+Thanks for registering on Freeroam SparkServer!
+To verify your email, click on this link: {url}
+
+FRSS Team

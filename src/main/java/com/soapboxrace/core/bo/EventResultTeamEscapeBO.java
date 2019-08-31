@@ -1,23 +1,21 @@
 package com.soapboxrace.core.bo;
 
-import javax.ejb.EJB;
-import javax.ejb.Stateless;
-
 import com.soapboxrace.core.dao.AchievementDAO;
 import com.soapboxrace.core.dao.EventDataDAO;
 import com.soapboxrace.core.dao.EventSessionDAO;
 import com.soapboxrace.core.dao.PersonaDAO;
+import com.soapboxrace.core.jpa.AchievementDefinitionEntity;
 import com.soapboxrace.core.jpa.EventDataEntity;
 import com.soapboxrace.core.jpa.EventSessionEntity;
+import com.soapboxrace.core.jpa.PersonaEntity;
 import com.soapboxrace.core.xmpp.OpenFireSoapBoxCli;
 import com.soapboxrace.core.xmpp.XmppEvent;
-import com.soapboxrace.jaxb.http.ArrayOfTeamEscapeEntrantResult;
-import com.soapboxrace.jaxb.http.ExitPath;
-import com.soapboxrace.jaxb.http.TeamEscapeArbitrationPacket;
-import com.soapboxrace.jaxb.http.TeamEscapeEntrantResult;
-import com.soapboxrace.jaxb.http.TeamEscapeEventResult;
+import com.soapboxrace.jaxb.http.*;
 import com.soapboxrace.jaxb.xmpp.XMPP_ResponseTypeTeamEscapeEntrantResult;
 import com.soapboxrace.jaxb.xmpp.XMPP_TeamEscapeEntrantResultType;
+
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
 
 @Stateless
 public class EventResultTeamEscapeBO {
@@ -88,6 +86,7 @@ public class EventResultTeamEscapeBO {
 		eventDataEntity.setTopSpeed(teamEscapeArbitrationPacket.getTopSpeed());
 		eventDataDao.update(eventDataEntity);
 
+		boolean anyoneEvaded = false;
 		ArrayOfTeamEscapeEntrantResult arrayOfTeamEscapeEntrantResult = new ArrayOfTeamEscapeEntrantResult();
 		for (EventDataEntity racer : eventDataDao.getRacers(eventSessionId)) {
 			TeamEscapeEntrantResult teamEscapeEntrantResult = new TeamEscapeEntrantResult();
@@ -99,6 +98,10 @@ public class EventResultTeamEscapeBO {
 			teamEscapeEntrantResult.setPersonaId(racer.getPersonaId());
 			teamEscapeEntrantResult.setRanking(racer.getRank());
 			arrayOfTeamEscapeEntrantResult.getTeamEscapeEntrantResult().add(teamEscapeEntrantResult);
+
+			if (racer.getFinishReason() == 518 || racer.getFinishReason() == 22) {
+				anyoneEvaded = true;
+			}
 
 			if (!racer.getPersonaId().equals(activePersonaId)) {
 				XmppEvent xmppEvent = new XmppEvent(racer.getPersonaId(), openFireSoapBoxCli);
@@ -121,9 +124,34 @@ public class EventResultTeamEscapeBO {
 		teamEscapeEventResult.setLobbyInviteId(0);
 		teamEscapeEventResult.setPersonaId(activePersonaId);
 
-		achievementsBO.update(personaDAO.findById(activePersonaId),
+		PersonaEntity persona = personaDAO.findById(activePersonaId);
+		achievementsBO.update(persona,
 				achievementDAO.findByName("achievement_ACH_CLOCKED_AIRTIME"),
 				teamEscapeArbitrationPacket.getSumOfJumpsDurationInMilliseconds());
+
+		AchievementDefinitionEntity achievement1 = achievementDAO.findByName("achievement_ACH_COPSDISABLED_TE");
+		if (achievement1 != null) {
+			achievementsBO.update(persona, achievement1, (long) teamEscapeArbitrationPacket.getCopsDisabled());
+		}
+
+		AchievementDefinitionEntity achievement2 = achievementDAO.findByName("achievement_ACH_DODGE_ROADBLOCK_TE");
+		if (achievement2 != null) {
+			achievementsBO.update(persona, achievement2, (long) teamEscapeArbitrationPacket.getRoadBlocksDodged());
+		}
+
+		AchievementDefinitionEntity achievement3 = achievementDAO.findByName("achievement_ACH_DRIVE_MILES");
+		Float distance = eventDataEntity.getEvent().getRanksDistance();
+		if (achievement3 != null && distance != null) {
+			achievementsBO.update(persona, achievement3, (long) (distance * 1000f));
+		}
+
+		if (anyoneEvaded) {
+			AchievementDefinitionEntity achievement4 = achievementDAO.findByName("achievement_ACH_EVADE_TE");
+			if (achievement4 != null) {
+				achievementsBO.update(persona, achievement4, 1L);
+			}
+		}
+
 		return teamEscapeEventResult;
 	}
 

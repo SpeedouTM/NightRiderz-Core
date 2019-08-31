@@ -1,10 +1,7 @@
 package com.soapboxrace.core.jpa;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+import java.util.Date;
 
 @Entity
 @Table(name = "REPORT")
@@ -19,7 +16,14 @@ public class ReportEntity {
 	private Integer petitionType;
 	private Integer customCarID;
 	private Integer chatMinutes;
+	private Integer eventSessionId;
 	private Long hacksdetected;
+	private Date createdAt;
+
+	@PrePersist
+	protected void onCreate() {
+		createdAt = new Date();
+	}
 
 	public Long getId() {
 		return id;
@@ -83,6 +87,22 @@ public class ReportEntity {
 	
 	public void setHacksDetected(Long hacksdetected) {
 		this.hacksdetected = hacksdetected;
+	}
+
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
+	public Integer getEventSessionId() {
+		return eventSessionId;
+	}
+
+	public void setEventSessionId(Integer eventSessionId) {
+		this.eventSessionId = eventSessionId;
 	}
 
 }

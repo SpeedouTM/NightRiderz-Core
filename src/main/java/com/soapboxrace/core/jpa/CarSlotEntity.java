@@ -1,23 +1,18 @@
 package com.soapboxrace.core.jpa;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "CARSLOT")
 @NamedQueries({ @NamedQuery(name = "CarSlotEntity.findByPersonaId", //
-		query = "SELECT obj FROM CarSlotEntity obj WHERE obj.persona = :persona ORDER by obj.id"), //
+		query = "SELECT obj FROM CarSlotEntity obj WHERE obj.persona.id = :persona ORDER by obj.id"), //
+		@NamedQuery(name = "CarSlotEntity.findByPersonaIdEager", //
+				query = "SELECT obj FROM CarSlotEntity obj " +
+						"INNER JOIN FETCH obj.ownedCar oc " +
+						"INNER JOIN FETCH oc.customCar cc " +
+						"WHERE obj.persona.id = :persona ORDER by obj.id"), //
+		@NamedQuery(name = "CarSlotEntity.countByPersonaId", //
+				query = "SELECT COUNT(obj) FROM CarSlotEntity obj WHERE obj.persona.id = :persona"), //
 		@NamedQuery(name = "CarSlotEntity.deleteByPersona", //
 				query = "DELETE FROM CarSlotEntity obj WHERE obj.persona = :persona") //
 })
@@ -26,7 +21,7 @@ public class CarSlotEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "PersonaId", referencedColumnName = "ID", foreignKey = @ForeignKey(name = "FK_CARSLOT_PERSONA"))
 	private PersonaEntity persona;
 

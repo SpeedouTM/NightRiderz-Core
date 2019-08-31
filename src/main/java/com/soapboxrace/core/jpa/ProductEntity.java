@@ -1,12 +1,6 @@
 package com.soapboxrace.core.jpa;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Entity
 @Table(name = "PRODUCT")
@@ -44,6 +38,7 @@ public class ProductEntity {
 	private int level;
 	private String longDescription;
 	private float price;
+	private Float premiumPrice;
 	private float resalePrice;
 	private int priority;
 	private String productId;
@@ -304,4 +299,18 @@ public class ProductEntity {
 		this.skillValue = skillValue;
 	}
 
+	public Float getPremiumPrice() {
+		return premiumPrice;
+	}
+
+	public void setPremiumPrice(Float premiumPrice) {
+		this.premiumPrice = premiumPrice;
+	}
+
+	public float getUserPrice(UserEntity user) {
+		if (user.isPremium()) {
+			return this.premiumPrice != null ? this.premiumPrice : this.price;
+		}
+		return this.price;
+	}
 }

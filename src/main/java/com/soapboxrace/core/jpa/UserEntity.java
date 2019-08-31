@@ -1,5 +1,7 @@
 package com.soapboxrace.core.jpa;
 
+import org.hibernate.annotations.Where;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -8,7 +10,9 @@ import java.util.List;
 @Table(name = "USER")
 @NamedQueries({ //
 		@NamedQuery(name = "UserEntity.findAll", query = "SELECT obj FROM UserEntity obj"),
-		@NamedQuery(name = "UserEntity.findByEmail", query = "SELECT obj FROM UserEntity obj WHERE obj.email = :email") //
+		@NamedQuery(name = "UserEntity.findByEmail", query = "SELECT obj FROM UserEntity obj WHERE obj.email = :email"),
+		@NamedQuery(name = "UserEntity.findByVerifyToken",
+				query = "SELECT obj FROM UserEntity obj WHERE obj.verifyToken = :token")
 })
 public class UserEntity {
 
@@ -23,15 +27,13 @@ public class UserEntity {
 	@Column(name = "PASSWORD", length = 255)
 	private String password;
 
-	@Column(name = "HWID")
-	private String hwid;
-
 	private String gameHardwareHash;
 
 	@Column(name = "IP_ADDRESS")
 	private String ipAddress;
 
 	@OneToMany(mappedBy = "user", targetEntity = PersonaEntity.class)
+	@Where(clause = "deletedAt IS NULL")
 	private List<PersonaEntity> listOfProfile;
 
 	@Column(name = "premium")
@@ -45,6 +47,10 @@ public class UserEntity {
 
 	@Column(name = "lastLogin")
 	private LocalDateTime lastLogin;
+
+	private String userAgent;
+
+	private String verifyToken;
 
 	public void setId(Long id) {
 		this.id = id;
@@ -72,14 +78,6 @@ public class UserEntity {
 
 	public List<PersonaEntity> getListOfProfile() {
 		return listOfProfile;
-	}
-
-	public String getHwid() {
-		return hwid;
-	}
-
-	public void setHwid(String hwid) {
-		this.hwid = hwid;
 	}
 
 	public String getIpAddress() {
@@ -134,4 +132,19 @@ public class UserEntity {
 		this.gameHardwareHash = gameHardwareHash;
 	}
 
+	public String getUserAgent() {
+		return userAgent;
+	}
+
+	public void setUserAgent(String userAgent) {
+		this.userAgent = userAgent;
+	}
+
+	public String getVerifyToken() {
+		return verifyToken;
+	}
+
+	public void setVerifyToken(String verifyToken) {
+		this.verifyToken = verifyToken;
+	}
 }

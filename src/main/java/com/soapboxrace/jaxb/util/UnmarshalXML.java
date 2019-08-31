@@ -1,15 +1,14 @@
 package com.soapboxrace.jaxb.util;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 
 public class UnmarshalXML {
 
@@ -18,7 +17,7 @@ public class UnmarshalXML {
 		T objTmp = null;
 		try {
 			InputStreamReader inputStreamReader = new InputStreamReader(is);
-			JAXBContext jaxbContext = JAXBContext.newInstance(classz);
+			JAXBContext jaxbContext = JAXBContextCache.get(classz);
 			Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 			XMLStreamReader xsr = XMLInputFactory.newFactory().createXMLStreamReader(inputStreamReader);
 			XMLReaderWithoutNamespace xr = new XMLReaderWithoutNamespace(xsr);
