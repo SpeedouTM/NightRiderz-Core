@@ -27,7 +27,7 @@ public class ChatAnnouncementsBO
 
     private Long ticks = 0L;
 
-    @Schedule(minute = "*", hour = "*", second = "*/5", persistent = false)
+    @Schedule(minute = "*", hour = "*", second = "*/1", persistent = false)
     public void sendMessages()
     {
         ticks += 5;
