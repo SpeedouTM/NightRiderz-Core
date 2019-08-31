@@ -38,9 +38,9 @@ public class GetUserSettings {
 				.collect(Collectors.toList());
 
 		UserSettings userSettings = new UserSettings();
-		userSettings.setCarCacheAgeLimit(600);
+		userSettings.setCarCacheAgeLimit(5000);
 		userSettings.setIsRaceNowEnabled(true);
-		userSettings.setMaxCarCacheSize(250);
+		userSettings.setMaxCarCacheSize(5000);
 		userSettings.setMinRaceNowLevel(2);
 		userSettings.setVoipAvailable(false);
 		ArrayOfString arrayOfString = new ArrayOfString();
