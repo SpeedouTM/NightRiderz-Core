@@ -107,7 +107,7 @@ public class RewardBO {
 		}
 		if (parameterBO.getBoolParam("ENABLE_ECONOMY")) {
 			int cashMax = (int) personaEntity.getCash() + cash;
-			personaEntity.setCash(cashMax > parameterBO.getIntParam("MAX_CASH", 9999999) ? parameterBO.getIntParam("MAX_CASH", 9999999) : cashMax < 1 ? 1 : cashMax);
+			personaEntity.setCash(cashMax > parameterBO.getIntParam("MAX_CASH", 999999999) ? parameterBO.getIntParam("MAX_CASH", 999999999) : cashMax < 1 ? 1 : cashMax);
 		}
 
 		if (parameterBO.getBoolParam("ENABLE_REPUTATION") && personaEntity.getLevel() < maxLevel) {
