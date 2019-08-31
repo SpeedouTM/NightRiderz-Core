@@ -59,7 +59,7 @@ public class GetUserSettings {
 						.collect(Collectors.toList()));
 		userSettings.setDisactivatedHolidaySceneryGroups(arrayOfString2);
 		userSettings.setFirstTimeLogin(false);
-		userSettings.setMaxLevel(60);
+		userSettings.setMaxLevel(100);
 		userSettings.setStarterPackApplied(false);
 		userSettings.setUserId(userId);
 		return userSettings;
